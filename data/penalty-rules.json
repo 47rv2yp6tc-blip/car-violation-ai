@@ -1,0 +1,6 @@
+[
+  {"id":"red-light","name":"疑似闖紅燈","regulation":"依所在地道路交通管理法規查證","fineMin":0,"fineMax":0,"note":"需清楚看見號誌、停止線與車輛位置"},
+  {"id":"parking","name":"疑似禁停區停車","regulation":"依所在地道路交通管理法規查證","fineMin":0,"fineMax":0,"note":"需確認禁停標線、標誌與停車狀態"},
+  {"id":"lane-line","name":"疑似違反道路標線","regulation":"依所在地道路交通管理法規查證","fineMin":0,"fineMax":0,"note":"需確認標線與車輛的相對位置"},
+  {"id":"double-parking","name":"疑似併排／臨時停車","regulation":"依所在地道路交通管理法規查證","fineMin":0,"fineMax":0,"note":"需確認車輛是否為停車及道路環境"}
+]
