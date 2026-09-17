@@ -1,3 +1,8 @@
 {
-  "functions": { "api/analyze.js": { "maxDuration": 60, "memory": 1024 } }
+  "functions": {
+    "api/analyze.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }
