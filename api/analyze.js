@@ -23,14 +23,19 @@ export default async function handler(req, res) {
 
     const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
     if (!match) return res.status(400).json({ error: 'Unsupported image format' });
-    if (image.length > 15 * 1024 * 1024) return res.status(413).json({ error: 'Image is too large; use an image under 10 MB' });
+    if (image.length > 15 * 1024 * 1024) {
+      return res.status(413).json({ error: 'Image is too large; use an image under 10 MB' });
+    }
 
     const mime = match[1];
-    if (mimeType && mimeType !== mime) return res.status(400).json({ error: 'Image MIME type does not match image data' });
+    if (mimeType && mimeType !== mime) {
+      return res.status(400).json({ error: 'Image MIME type does not match image data' });
+    }
+
     const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const prompt = `你是道路交通照片分析助手。只根據照片中明顯可見的內容分析，不可推測照片外看不到的時間、地點、車速、駕駛意圖或方向燈狀態。若證據不足，必須使用「無法從此照片確認」，不要強制判斷。請分析車輛、車道、道路標線、號誌、交通標誌、停車位置與行駛方向。只能回傳 JSON：{"violations":[{"type":"可能的違規類型或無法從此照片確認","reason":"可見判斷依據","confidence":0,"penalty":"可能涉及的罰則或未能確認","fine":0,"additional_info":"需要補充的資訊"}],"total_fine":0}。confidence 為 0 到 100；無法確認時 fine 與 total_fine 必須為 0。`;
-
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,10 +44,23 @@ export default async function handler(req, res) {
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
       }),
     });
-    const raw = await response.json();
+
+    const responseText = await response.text();
+    let raw = {};
+    try {
+      raw = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      raw = { raw: responseText.slice(0, 500) };
+    }
+
     if (!response.ok) {
-      const status = raw?.error?.code === 429 ? 429 : 502;
-      return res.status(status).json({ error: raw?.error?.message || 'Gemini API failed' });
+      console.error('Gemini API response:', response.status, raw);
+      const upstreamStatus = Number(raw?.error?.code) || response.status;
+      const status = upstreamStatus >= 400 && upstreamStatus < 500 ? upstreamStatus : 502;
+      return res.status(status).json({
+        error: raw?.error?.message || 'Gemini API failed',
+        upstream_status: upstreamStatus,
+      });
     }
 
     const text = raw?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '{}';
