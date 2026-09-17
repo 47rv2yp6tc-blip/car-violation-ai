@@ -1,0 +1,10 @@
+{
+  "name": "RoadLens AI",
+  "short_name": "RoadLens",
+  "lang": "zh-Hant",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f8fc",
+  "theme_color": "#0b67d1",
+  "icons": []
+}
