@@ -1,41 +1,79 @@
+const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_IMAGES = 6;
+const MAX_DATA_URL_LENGTH = 15 * 1024 * 1024;
+const ANALYSIS_SCHEMA = {
+  type: 'object',
+  properties: {
+    quality: { type: 'object', properties: { usable: { type: 'boolean' }, issues: { type: 'array', items: { type: 'string' } }, explanation: { type: 'string' } }, required: ['usable', 'issues', 'explanation'] },
+    observed_facts: { type: 'array', items: { type: 'string' } },
+    violations: { type: 'array', items: { type: 'object', properties: {
+      violation_type: { type: 'string' }, confidence: { type: 'number' }, evidence: { type: 'string' }, reasoning: { type: 'string' }, missing_evidence: { type: 'array', items: { type: 'string' } }, fine_range: { type: 'string' }, fine_min: { type: ['number', 'null'] }, fine_max: { type: ['number', 'null'] }, regulation: { type: 'string' }, needs_human_review: { type: 'boolean' }
+    }, required: ['violation_type', 'confidence', 'evidence', 'reasoning', 'missing_evidence', 'fine_range', 'fine_min', 'fine_max', 'regulation', 'needs_human_review'] } },
+    summary: { type: 'string' }
+  },
+  required: ['quality', 'observed_facts', 'violations', 'summary']
+};
+
+const promptFor = (count) => `你是具備影像理解能力的道路交通證據分析助手。這是同一事件的 ${count} 張照片。請綜合所有角度，不要把照片分開當成不同事件。
+
+請嚴格分兩階段：
+第一階段只列出照片中實際看得到的事實，不得先猜違規：車輛數量與位置、車道、道路標線與停止線、紅綠燈顏色與可見狀態、交通標誌、車輛朝向／可見行進方向、停車位置、周圍道路環境，以及照片品質（模糊、過暗、過曝、解析度不足、主體太小、標線或號誌遮擋）。
+第二階段只用第一階段事實判斷可能違規。若關鍵證據看不清楚、互相矛盾或缺少例外情況，請輸出「無法從此照片確認」或低 confidence，並列出 missing_evidence；不要為了產生違規而推測。
+
+confidence 必須是你對影像證據的原始 0-100 信心，不是收到罰單的機率、不是法律確定性；不得把低信心調高。fine_min/fine_max 只有在照片情境與已知法規足以可靠支持時才填數字，否則必須是 null 且 fine_range 為「需查證」。不要輸出車牌號碼、臉部或其他個人資料。不要虛構 bounding box；evidence 以「第幾張照片＋畫面位置」描述即可。
+
+請只回傳符合指定 JSON schema 的 JSON，不要 Markdown。若多張照片結論不同，summary 必須明確說明差異。`;
+
+function jsonResponse(res, status, body) { return res.status(status).json(body); }
+function parseImage(value, expectedType) {
+  const match = String(value || '').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if (!match || !ALLOWED.has(match[1]) || (expectedType && expectedType !== match[1])) return null;
+  return { mimeType: match[1], data: match[2] };
+}
+function clampConfidence(value) { return Math.max(0, Math.min(100, Number.isFinite(Number(value)) ? Math.round(Number(value)) : 0)); }
+function numberOrNull(value) { return Number.isFinite(Number(value)) && Number(value) >= 0 ? Math.round(Number(value)) : null; }
+function level(value) { return value >= 90 ? '高度信心' : value >= 70 ? '中等信心' : value >= 50 ? '低信心' : '不建議判定'; }
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return jsonResponse(res, 405, { error: 'Method not allowed' });
   try {
-    const { images, image, mimeTypes, mimeType } = req.body || {};
-    const list = Array.isArray(images) && images.length ? images : [image];
-    const types = Array.isArray(mimeTypes) && mimeTypes.length ? mimeTypes : [mimeType];
-    if (!list[0]) return res.status(400).json({ error: '請先提供照片。' });
-    if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: '分析服務尚未設定 GEMINI_API_KEY。' });
-    if (list.length > 6) return res.status(400).json({ error: '一次最多分析 6 張照片。' });
+    const body = req.body || {};
+    const list = Array.isArray(body.images) && body.images.length ? body.images : [body.image];
+    const types = Array.isArray(body.mimeTypes) && body.mimeTypes.length ? body.mimeTypes : [body.mimeType];
+    if (!list[0]) return jsonResponse(res, 400, { error: '請先提供照片。' });
+    if (!process.env.GEMINI_API_KEY) return jsonResponse(res, 503, { error: '分析服務尚未設定 GEMINI_API_KEY。' });
+    if (list.length > MAX_IMAGES) return jsonResponse(res, 400, { error: `一次最多分析 ${MAX_IMAGES} 張照片。` });
     const parts = [];
     for (let i = 0; i < list.length; i += 1) {
-      const match = String(list[i]).match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-      if (!match || (types[i] && types[i] !== match[1])) return res.status(400).json({ error: '只支援格式正確的 JPG、PNG 或 WEBP 圖片。' });
-      if (String(list[i]).length > 15 * 1024 * 1024) return res.status(413).json({ error: '照片過大，請使用較小檔案。' });
-      parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+      if (String(list[i]).length > MAX_DATA_URL_LENGTH) return jsonResponse(res, 413, { error: '照片過大，請壓縮後再試。' });
+      const image = parseImage(list[i], types[i]);
+      if (!image) return jsonResponse(res, 400, { error: '只支援格式正確的 JPG、PNG 或 WEBP 圖片。' });
+      parts.push({ inlineData: image });
     }
     const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
-    const prompt = `你是道路交通照片分析助手。這是同一事件的${list.length}張照片，請合併判讀。只根據可見證據，不可推測看不到的資訊，不要輸出車牌號碼或其他個資。對每個可能結果提供模型實際信心百分比；這不是被開罰機率。若證據不足使用「無法從此照片確認」。罰款若無法從已知法規可靠確認，fine_min 與 fine_max 必須為 null，fine_range 必須是「需查證」，不可猜測。只能回傳 JSON：{"violations":[{"type":"疑似違規名稱","confidence":0,"confidence_level":"高度信心/中等信心/低信心/不建議判定","reason":"AI判斷理由","evidence_location":"照片編號與判斷依據位置","fine_min":null,"fine_max":null,"fine_range":"需查證","regulation":"可能涉及法規或需查證","needs_human_review":"需要人工確認事項"}],"summary":"發現、照片間差異與不確定處","total_fine_min":null,"total_fine_max":null,"human_review_count":0}。confidence 僅代表模型對影像證據的信心，不代表實際收到罰單的機率，也不代表法律確定性。`;
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
-    const response = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ contents: [{parts: [{text: prompt}, ...parts]}], generationConfig: {temperature: 0.1, responseMimeType: 'application/json'} }) });
+    const requestBody = { contents: [{ parts: [{ text: promptFor(list.length) }, ...parts] }], generationConfig: { temperature: 0.05, responseMimeType: 'application/json', responseSchema: ANALYSIS_SCHEMA } };
+    let response;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 55000);
+      try { response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody), signal: controller.signal }); } finally { clearTimeout(timeout); }
+      if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 1) break;
+      await new Promise((resolve) => setTimeout(resolve, 700));
+    }
     const raw = await response.json().catch(() => ({}));
-    if (!response.ok) { console.error('Gemini API response:', response.status, raw); return res.status(response.status === 429 ? 429 : 502).json({ error: raw?.error?.message || 'Gemini 暫時無法處理，請稍後再試。', upstream_status: response.status }); }
-    const text = raw?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '{}';
+    if (!response.ok) { console.error('Gemini API response:', response.status, raw); const status = response.status === 429 ? 429 : response.status >= 400 && response.status < 500 ? response.status : 502; return jsonResponse(res, status, { error: raw?.error?.message || 'Gemini 暫時無法處理，請稍後再試。', upstream_status: response.status }); }
+    const text = raw?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '{}';
     const parsed = JSON.parse(text.replace(/^```json\s*|\s*```$/g, '').trim());
-    const level = (confidence) => confidence >= 90 ? '高度信心' : confidence >= 70 ? '中等信心' : confidence >= 50 ? '低信心' : '不建議判定';
-    const numberOrNull = (value) => Number.isFinite(Number(value)) && Number(value) >= 0 ? Math.round(Number(value)) : null;
-    const violations = Array.isArray(parsed.violations) ? parsed.violations.map((v) => {
-      const confidence = Math.max(0, Math.min(100, Math.round(Number(v?.confidence) || 0)));
-      const fineMin = numberOrNull(v?.fine_min);
-      const fineMax = numberOrNull(v?.fine_max);
-      const range = fineMin !== null && fineMax !== null ? `NT$ ${fineMin.toLocaleString()}～${fineMax.toLocaleString()}` : '需查證';
-      return { type: String(v?.type || '無法從此照片確認'), confidence, confidence_level: String(v?.confidence_level || level(confidence)), reason: String(v?.reason || '照片證據不足。'), evidence_location: String(v?.evidence_location || '未提供'), fine_min: fineMin, fine_max: fineMax, fine_range: String(v?.fine_range || range), regulation: String(v?.regulation || '需要查證'), needs_human_review: String(v?.needs_human_review || '建議人工確認') };
+    const quality = { usable: Boolean(parsed?.quality?.usable), issues: Array.isArray(parsed?.quality?.issues) ? parsed.quality.issues.map(String).slice(0, 10) : [], explanation: String(parsed?.quality?.explanation || '') };
+    const violations = Array.isArray(parsed.violations) ? parsed.violations.map((item) => {
+      const confidence = clampConfidence(item?.confidence);
+      const fineMin = numberOrNull(item?.fine_min); const fineMax = numberOrNull(item?.fine_max);
+      return { type: String(item?.violation_type || '無法從此照片確認'), violation_type: String(item?.violation_type || '無法從此照片確認'), confidence, confidence_level: level(confidence), evidence: String(item?.evidence || '未提供'), evidence_location: String(item?.evidence || '未提供'), reasoning: String(item?.reasoning || '照片證據不足。'), reason: String(item?.reasoning || '照片證據不足。'), missing_evidence: Array.isArray(item?.missing_evidence) ? item.missing_evidence.map(String).slice(0, 10) : [], fine_min: fineMin, fine_max: fineMax, fine_range: fineMin !== null && fineMax !== null ? `NT$ ${fineMin.toLocaleString()}～${fineMax.toLocaleString()}` : '需查證', regulation: String(item?.regulation || '需要依所在地法規查證'), needs_human_review: item?.needs_human_review !== false || confidence < 90 };
     }) : [];
-    const priced = violations.filter(v => v.fine_min !== null && v.fine_max !== null && !v.type.includes('無法'));
-    const totalFineMin = priced.length ? priced.reduce((sum, v) => sum + v.fine_min, 0) : null;
-    const totalFineMax = priced.length ? priced.reduce((sum, v) => sum + v.fine_max, 0) : null;
-    const highest = violations.reduce((max, v) => Math.max(max, v.confidence), 0);
-    const humanReviewCount = violations.filter(v => v.confidence < 90 || v.type.includes('無法') || v.needs_human_review).length;
-    return res.status(200).json({ violations, total_fine: totalFineMin !== null && totalFineMin === totalFineMax ? totalFineMin : 0, total_fine_min: totalFineMin, total_fine_max: totalFineMax, highest_confidence: highest, human_review_count: humanReviewCount, summary: String(parsed.summary || '依多張照片可見資訊整理。') });
-  } catch (error) { console.error('Gemini analysis error:', error); return res.status(500).json({ error: '分析結果格式無法讀取，請重新拍攝後再試。' }); }
+    const priced = violations.filter((item) => item.fine_min !== null && item.fine_max !== null && !item.type.includes('無法'));
+    const totalFineMin = priced.length ? priced.reduce((sum, item) => sum + item.fine_min, 0) : null;
+    const totalFineMax = priced.length ? priced.reduce((sum, item) => sum + item.fine_max, 0) : null;
+    return jsonResponse(res, 200, { quality, observed_facts: Array.isArray(parsed.observed_facts) ? parsed.observed_facts.map(String).slice(0, 30) : [], violations, total_fine: totalFineMin !== null && totalFineMin === totalFineMax ? totalFineMin : 0, total_fine_min: totalFineMin, total_fine_max: totalFineMax, highest_confidence: violations.reduce((max, item) => Math.max(max, item.confidence), 0), human_review_count: violations.filter((item) => item.needs_human_review).length, summary: String(parsed.summary || '目前證據不足，建議重新拍攝。') });
+  } catch (error) { console.error('Gemini analysis error:', error); return jsonResponse(res, error?.name === 'AbortError' ? 504 : 500, { error: error?.name === 'AbortError' ? 'AI 分析逾時，請稍後再試。' : '分析結果格式無法讀取，請重新拍攝後再試。' }); }
 }
