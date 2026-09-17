@@ -1,10 +1,13 @@
 // Vercel serverless function for Gemini image analysis.
 // GEMINI_API_KEY must exist only in the server environment.
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
     const { image, mimeType } = req.body || {};
+
     if (!image || !String(image).startsWith('data:image/')) {
       return res.status(400).json({ error: 'Missing image data' });
     }
