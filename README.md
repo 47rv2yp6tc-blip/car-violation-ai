@@ -2,33 +2,32 @@
 
 汽車違規拍照辨識與預估罰鍰的學習展示原型。
 
-## GitHub Pages 前端
+## 檔案與部署
 
-網站入口是根目錄的 `index.html`。在 GitHub repository 的 **Settings → Pages** 選擇 **Deploy from a branch**、`main` 與 `/ (root)`。這樣 GitHub Pages 不會再因原本的 `car-ai` 檔名而找不到入口。
+- `index.html`：根目錄靜態前端入口，支援電腦上傳、手機拍照、拖曳、預覽與結果顯示。
+- `api/analyze.js`：Vercel serverless API，使用 Gemini Vision；只在伺服器讀取 `GEMINI_API_KEY`。
+- `vercel.json`：Vercel function 的執行時間設定。
+- `car-ai`：舊版草稿，不是部署入口；請使用根目錄的 `index.html`。
 
-GitHub Pages 只能提供靜態 HTML/CSS/JavaScript，不能安全地執行後端模型或保存 API key。未部署 API 時，圖片上傳仍可使用，但分析會明確顯示無法連線，不會顯示固定或猜測的結果。
+## 建議部署：Vercel
 
-## 實際影像模型 API
+Vercel 同時提供前端與 `/api/analyze`，請使用 Vercel 網址測試完整 AI 功能：
 
-`api/analyze.js` 是 Vercel serverless function。它把圖片交給具備 vision 能力的模型，要求模型分析車輛、車道與標線、紅綠燈、交通標誌、停車位置與行駛方向；無法確認時必須回傳「無法確定」及所需額外資訊。
+1. 將 repository 匯入 Vercel，Root Directory 使用 repository root。
+2. 在 Vercel Project Settings → Environment Variables 設定：
+   - `GEMINI_API_KEY`：Google AI Studio API key。
+   - `GEMINI_MODEL`：`gemini-2.5-flash`（可省略，後端有預設值）。
+3. 將變數套用到 Production。
+4. 儲存後重新部署，使用 Vercel 的 `*.vercel.app` 網址。
 
-建議部署方式：
+API key 絕對不要放在 `index.html`、`car-ai` 或任何 Git 檔案中。前端只呼叫相對路徑 `/api/analyze`；後端使用 Gemini `generateContent`、`inlineData` 圖片資料與 JSON 回應格式。
 
-1. 將 repository 匯入 Vercel。
-2. 在 Vercel Project Settings → Environment Variables 設定 `OPENAI_API_KEY`。
-3. 可選設定 `OPENAI_VISION_MODEL`，未設定時使用 `gpt-4o-mini`。
-4. 部署後以 Vercel 網址開啟網站，讓 `/api/analyze` 與前端使用同一個網域，避免 CORS。
-5. 若前端必須留在 GitHub Pages，請把 `index.html` 中的 `/api/analyze` 改成 Vercel API 完整 URL，並在 API 端加入只允許 Pages 網域的 CORS 設定。
+## GitHub Pages 限制
 
-API key 絕對不要寫入 `index.html`，也不要提交到 Git。
+GitHub Pages 只能提供靜態檔案，不能執行 `api/analyze.js` 或保存 Gemini secret。GitHub Pages 可展示前端與上傳介面，但 AI 分析請使用 Vercel 網址。若前端留在 GitHub Pages，必須另外使用 Vercel API 完整網址並設定嚴格的 CORS `ALLOWED_ORIGIN`。
 
-## 本機測試
+## API 錯誤處理
 
-```bash
-npm install -g vercel
-vercel dev
-```
-
-設定環境變數後，開啟 Vercel CLI 顯示的網址即可測試完整流程。
+後端會檢查 POST 方法、圖片格式（JPG/PNG/WEBP）、圖片大小、`GEMINI_API_KEY`，並處理 Gemini API 錯誤與 quota。照片不足時，結果必須明確標示「無法從此照片確認」，不會把照片看不到的資訊當成事實。
 
 > 罰款只是預估值，不是正式法律判定；請以主管機關最新公告與實際執法人員認定為準。
