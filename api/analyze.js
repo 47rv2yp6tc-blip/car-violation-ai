@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Image MIME type does not match image data' });
     }
 
-    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
     const prompt = `你是道路交通照片分析助手。只根據照片中明顯可見的內容分析，不可推測照片外看不到的時間、地點、車速、駕駛意圖或方向燈狀態。若證據不足，必須使用「無法從此照片確認」，不要強制判斷。請分析車輛、車道、道路標線、號誌、交通標誌、停車位置與行駛方向。只能回傳 JSON：{"violations":[{"type":"可能的違規類型或無法從此照片確認","reason":"可見判斷依據","confidence":0,"penalty":"可能涉及的罰則或未能確認","fine":0,"additional_info":"需要補充的資訊"}],"total_fine":0}。confidence 為 0 到 100；無法確認時 fine 與 total_fine 必須為 0。`;
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
 
