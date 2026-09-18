@@ -22,14 +22,17 @@
       if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) return resolve(file);
       var url = URL.createObjectURL(file), image = new Image();
       image.onload = function () {
-        var scale = Math.min(1, MAX_EDGE / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+        var width = image.naturalWidth || image.width;
+        var height = image.naturalHeight || image.height;
+        var scale = Math.min(1, MAX_EDGE / Math.max(width, height));
         var canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
-        canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+        canvas.width = Math.max(1, Math.round(width * scale));
+        canvas.height = Math.max(1, Math.round(height * scale));
         canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
         URL.revokeObjectURL(url);
         canvas.toBlob(function (blob) {
-          resolve(blob && blob.size < file.size ? new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }) : file);
+          if (!blob) return resolve(file);
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }));
         }, 'image/jpeg', JPEG_QUALITY);
       };
       image.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
@@ -37,8 +40,8 @@
     });
   }
 
-  // The existing page reads selected files with FileReader. Compress those
-  // files transparently before they become Base64 request data.
+  // The existing page reads selected files with FileReader. Compress them
+  // transparently before they become Base64 request data.
   window.FileReader = function () {
     var reader = new OriginalFileReader();
     var originalRead = reader.readAsDataURL.bind(reader);
@@ -49,8 +52,9 @@
   };
   window.FileReader.prototype = OriginalFileReader.prototype;
 
-  // Remove the duplicate single-image payload. The backend accepts images and
-  // mimeTypes; sending image/mimeType again unnecessarily increases body size.
+  // The page sends legacy image/mimeType fields as well. Remove those fields,
+  // and remove mimeTypes too because compression can change PNG/WEBP to JPEG.
+  // The API accepts images and infers each MIME type from its data URL.
   window.fetch = function (url, options) {
     if (String(url).indexOf('/api/analyze') !== -1 && options && typeof options.body === 'string') {
       try {
@@ -58,6 +62,7 @@
         if (Array.isArray(payload.images) && payload.images.length) {
           delete payload.image;
           delete payload.mimeType;
+          delete payload.mimeTypes;
           options = Object.assign({}, options, { body: JSON.stringify(payload) });
         }
       } catch (_) { /* Let the original fetch report malformed payloads. */ }
