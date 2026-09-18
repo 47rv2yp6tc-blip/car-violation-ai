@@ -1,10 +1,12 @@
 {
-  "name": "RoadLens AI",
-  "short_name": "RoadLens",
-  "lang": "zh-Hant",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f5f8fc",
-  "theme_color": "#0b67d1",
-  "icons": []
+  "name":"RoadLens AI",
+  "short_name":"RoadLens",
+  "lang":"zh-Hant",
+  "start_url":"./index.html",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f5f8fc",
+  "theme_color":"#1769e0",
+  "description":"以影像證據輔助整理道路交通疑似違規；不取代正式裁罰判定。",
+  "icons":[]
 }

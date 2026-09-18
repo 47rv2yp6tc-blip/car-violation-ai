@@ -1,6 +1,6 @@
 [
-  {"id":"red-light","name":"疑似闖紅燈","regulation":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"fineCurrency":"TWD","note":"需清楚看見號誌、停止線與車輛位置；罰款需依所在地最新法規查證"},
-  {"id":"parking","name":"疑似禁停區停車","regulation":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"fineCurrency":"TWD","note":"需確認禁停標線、標誌與停車狀態；罰款需依所在地最新法規查證"},
-  {"id":"lane-line","name":"疑似違反道路標線","regulation":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"fineCurrency":"TWD","note":"需確認標線與車輛的相對位置；罰款需依所在地最新法規查證"},
-  {"id":"double-parking","name":"疑似併排／臨時停車","regulation":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"fineCurrency":"TWD","note":"需確認車輛是否為停車及道路環境；罰款需依所在地最新法規查證"}
+  {"id":"red-light","name":"疑似闖紅燈","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"source":"未設定官方來源；部署前請由管理者更新","notes":"需同時清楚看見號誌、停止線、車輛位置與行進狀態。"},
+  {"id":"parking","name":"疑似禁停區停車","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"source":"未設定官方來源；部署前請由管理者更新","notes":"需確認禁停標線、標誌、位置與例外情況。"},
+  {"id":"lane-line","name":"疑似違反道路標線","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"source":"未設定官方來源；部署前請由管理者更新","notes":"需清楚看見標線類型及車輛與標線的相對位置。"},
+  {"id":"double-parking","name":"疑似併排／臨時停車","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"source":"未設定官方來源；部署前請由管理者更新","notes":"需確認車輛是否實際影響車道，以及停車／臨停情境。"}
 ]
