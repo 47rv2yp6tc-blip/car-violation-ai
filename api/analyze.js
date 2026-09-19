@@ -1,14 +1,10 @@
+import { PROMPT_VERSION, buildVisionPrompt } from './prompt.js';
+
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_IMAGES = 6;
 const MAX_DATA_URL_LENGTH = 15 * 1024 * 1024;
 const UPSTREAM_TIMEOUT_MS = 50_000;
 const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
-
-const promptFor = () => `你是具備影像理解能力的道路交通證據分析助手。
-請先列出照片中實際看得到的事實：車輛位置、車道、道路標線與停止線、紅綠燈狀態、交通標誌、車輛方向、停車位置、道路環境，以及照片品質。
-只回傳一個 JSON 物件，不要 Markdown 或程式碼圍欄，格式必須包含 quality、observed_facts、violations、summary 四個欄位。
-每個 violation 必須包含 violation_type、confidence、evidence、reason、fine_min、fine_max、fine_range、missing_evidence。
-confidence 是影像證據信心，不是收到罰單的機率，也不是法律確定性。無法可靠確認時，請使用「無法從此照片確認」並列出缺少的證據；fine_min 與 fine_max 無法可靠確認時使用 0，fine_range 使用「需查證官方資料」。`;
 
 function jsonResponse(res, status, body) {
   res.setHeader('Cache-Control', 'no-store');
@@ -25,12 +21,12 @@ function clampConfidence(value) {
   return Math.max(0, Math.min(100, Number.isFinite(Number(value)) ? Math.round(Number(value)) : 0));
 }
 
-function numberOrNull(value) {
-  return Number.isFinite(Number(value)) && Number(value) >= 0 ? Math.round(Number(value)) : null;
+function level(value) {
+  return value >= 90 ? '高度信心' : value >= 70 ? '中等信心' : value >= 50 ? '低信心' : '不建議判��';
 }
 
-function level(value) {
-  return value >= 90 ? '高度信心' : value >= 70 ? '中等信心' : value >= 50 ? '低信心' : '不建議判定';
+function asStrings(value, limit = 10) {
+  return Array.isArray(value) ? value.map(String).slice(0, limit) : [];
 }
 
 function parseModelJson(text) {
@@ -41,8 +37,50 @@ function parseModelJson(text) {
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
+function normalizeResult(parsed) {
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.violations)) {
+    throw new Error('模型回傳格式不符合預期');
+  }
+
+  const violations = parsed.violations.map((item) => {
+    const confidence = clampConfidence(item?.confidence);
+    const violation = String(item?.violation || item?.violation_type || '無法從此照片確認');
+    const uncertain = Boolean(item?.uncertain) || confidence < 50 || violation.includes('無法');
+    return {
+      type: violation,
+      violation_type: violation,
+      violation,
+      confidence,
+      confidence_level: level(confidence),
+      uncertain,
+      evidence: String(item?.evidence || '未提供'),
+      evidence_location: String(item?.evidence_location || '未提供'),
+      reason: String(item?.reason || '未提供'),
+      additionalInformation: asStrings(item?.additionalInformation || item?.missing_evidence),
+      missing_evidence: asStrings(item?.missing_evidence),
+      evidenceCompleteness: String(item?.evidenceCompleteness || '未提供'),
+      contradictions: asStrings(item?.contradictions),
+      candidates: Array.isArray(item?.candidates) ? item.candidates.slice(0, 5) : [],
+      vehicleId: String(item?.vehicleId || item?.vehicle || ''),
+      needs_human_review: Boolean(item?.needs_human_review) || uncertain || asStrings(item?.contradictions).length > 0,
+    };
+  });
+
+  return {
+    quality: {
+      usable: Boolean(parsed?.quality?.usable),
+      issues: asStrings(parsed?.quality?.issues),
+      explanation: String(parsed?.quality?.explanation || ''),
+    },
+    observed_facts: asStrings(parsed.observed_facts, 30),
+    violations,
+    summary: String(parsed.summary || '未提供'),
+  };
+}
+
 function safeErrorMessage(error) {
   if (error?.name === 'AbortError') return 'AI 分析逾時，請稍後再試。';
+  if (error?.message === '模型回傳格式不符合預期' || error?.message === '模型未回傳 JSON') return 'AI 回應格式無法驗證，請稍後再試。';
   return '分析服務暫時無法完成，請稍後再試。';
 }
 
@@ -69,8 +107,8 @@ export default async function handler(req, res) {
     }
 
     const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
-    const contents = [{ parts: [{ text: promptFor() }, ...parts] }];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const contents = [{ parts: [{ text: buildVisionPrompt() }, ...parts] }];
     const requestBody = (withJsonMime) => ({
       contents,
       generationConfig: { temperature: 0.05, ...(withJsonMime ? { responseMimeType: 'application/json' } : {}) },
@@ -82,7 +120,7 @@ export default async function handler(req, res) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
       try {
-        response = await fetch(endpoint, {
+        response = await fetch(`${endpoint}?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody(attempt === 0)),
@@ -106,44 +144,13 @@ export default async function handler(req, res) {
     }
 
     const text = raw?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
-    const parsed = parseModelJson(text);
-    const quality = {
-      usable: Boolean(parsed?.quality?.usable),
-      issues: Array.isArray(parsed?.quality?.issues) ? parsed.quality.issues.map(String).slice(0, 10) : [],
-      explanation: String(parsed?.quality?.explanation || ''),
-    };
-    const violations = Array.isArray(parsed?.violations) ? parsed.violations.map((item) => {
-      const confidence = clampConfidence(item?.confidence);
-      const fineMin = numberOrNull(item?.fine_min);
-      const fineMax = numberOrNull(item?.fine_max);
-      const type = String(item?.violation_type || '無法從此照片確認');
-      return {
-        type,
-        violation_type: type,
-        confidence,
-        confidence_level: level(confidence),
-        evidence: String(item?.evidence || '未提供'),
-        evidence_location: String(item?.evidence_location || item?.evidence || '未提供'),
-        reason: String(item?.reason || '未提供'),
-        fine_min: fineMin,
-        fine_max: fineMax,
-        fine_range: String(item?.fine_range || '需查證官方資料'),
-        missing_evidence: Array.isArray(item?.missing_evidence) ? item.missing_evidence.map(String).slice(0, 10) : [],
-        needs_human_review: Boolean(item?.needs_human_review),
-      };
-    }) : [];
-    const priced = violations.filter((item) => item.fine_min !== null && item.fine_max !== null && !item.type.includes('無法'));
-    const totalFineMin = priced.length ? priced.reduce((sum, item) => sum + item.fine_min, 0) : null;
-    const totalFineMax = priced.length ? priced.reduce((sum, item) => sum + item.fine_max, 0) : null;
-
+    const result = normalizeResult(parseModelJson(text));
     return jsonResponse(res, 200, {
-      quality,
-      observed_facts: Array.isArray(parsed.observed_facts) ? parsed.observed_facts.map(String).slice(0, 30) : [],
-      violations,
-      summary: String(parsed.summary || '未提供'),
-      total_fine: totalFineMin !== null && totalFineMax !== null ? totalFineMin : null,
-      total_fine_min: totalFineMin,
-      total_fine_max: totalFineMax,
+      ...result,
+      model,
+      promptVersion: PROMPT_VERSION,
+      // Fine fields intentionally remain rule-engine-owned and are not read from Gemini.
+      fineCalculation: { status: 'pending_rule_lookup' },
     });
   } catch (error) {
     console.error('Gemini analysis error', { name: error?.name, message: error?.message });
