@@ -7,6 +7,12 @@ function normalize(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function toFineValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
 function findRule(violationType) {
   const type = normalize(violationType);
   return rules.find((rule) => {
@@ -18,8 +24,8 @@ function findRule(violationType) {
 export function calculateFine(violationType) {
   const rule = findRule(violationType);
   if (!rule) return { rule: null, fineMin: null, fineMax: null, status: 'rule_not_found' };
-  const fineMin = Number.isFinite(Number(rule.fineMin)) ? Number(rule.fineMin) : null;
-  const fineMax = Number.isFinite(Number(rule.fineMax)) ? Number(rule.fineMax) : null;
+  const fineMin = toFineValue(rule.fineMin);
+  const fineMax = toFineValue(rule.fineMax);
   return {
     rule: {
       id: rule.id,
