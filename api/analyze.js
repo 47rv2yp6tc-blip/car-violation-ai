@@ -1,4 +1,5 @@
 import { PROMPT_VERSION, buildVisionPrompt } from './prompt.js';
+import { calculateFine, calculateTotal } from './rules.js';
 
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_IMAGES = 6;
@@ -22,7 +23,7 @@ function clampConfidence(value) {
 }
 
 function level(value) {
-  return value >= 90 ? '高度信心' : value >= 70 ? '中等信心' : value >= 50 ? '低信心' : '不建議判��';
+  return value >= 90 ? '高度信心' : value >= 70 ? '中等信心' : value >= 50 ? '低信心' : '不建議判定';
 }
 
 function asStrings(value, limit = 10) {
@@ -45,7 +46,11 @@ function normalizeResult(parsed) {
   const violations = parsed.violations.map((item) => {
     const confidence = clampConfidence(item?.confidence);
     const violation = String(item?.violation || item?.violation_type || '無法從此照片確認');
+    const contradictions = asStrings(item?.contradictions);
+    const missingEvidence = asStrings(item?.missing_evidence);
     const uncertain = Boolean(item?.uncertain) || confidence < 50 || violation.includes('無法');
+    const ruleCalculation = calculateFine(violation);
+
     return {
       type: violation,
       violation_type: violation,
@@ -56,15 +61,27 @@ function normalizeResult(parsed) {
       evidence: String(item?.evidence || '未提供'),
       evidence_location: String(item?.evidence_location || '未提供'),
       reason: String(item?.reason || '未提供'),
-      additionalInformation: asStrings(item?.additionalInformation || item?.missing_evidence),
-      missing_evidence: asStrings(item?.missing_evidence),
+      additionalInformation: asStrings(item?.additionalInformation || missingEvidence),
+      missing_evidence: missingEvidence,
       evidenceCompleteness: String(item?.evidenceCompleteness || '未提供'),
-      contradictions: asStrings(item?.contradictions),
+      contradictions,
       candidates: Array.isArray(item?.candidates) ? item.candidates.slice(0, 5) : [],
       vehicleId: String(item?.vehicleId || item?.vehicle || ''),
-      needs_human_review: Boolean(item?.needs_human_review) || uncertain || asStrings(item?.contradictions).length > 0,
+      needs_human_review: Boolean(item?.needs_human_review) || uncertain || contradictions.length > 0,
+      rule: ruleCalculation.rule,
+      fine_min: ruleCalculation.fineMin,
+      fine_max: ruleCalculation.fineMax,
+      fine_status: ruleCalculation.status,
     };
   });
+
+  // This is an AI-stage estimate only. The frontend must not treat it as final
+  // until the user confirms the relevant violation(s).
+  const estimatedTotal = calculateTotal(
+    violations
+      .filter((item) => !item.uncertain && item.fine_status === 'calculated')
+      .map((item) => ({ fineMin: item.fine_min, fineMax: item.fine_max }))
+  );
 
   return {
     quality: {
@@ -75,6 +92,9 @@ function normalizeResult(parsed) {
     observed_facts: asStrings(parsed.observed_facts, 30),
     violations,
     summary: String(parsed.summary || '未提供'),
+    estimated_fine_min: estimatedTotal.min,
+    estimated_fine_max: estimatedTotal.max,
+    fine_calculation_status: estimatedTotal.min === null ? 'needs_official_data_or_confirmation' : 'estimate_only',
   };
 }
 
@@ -149,8 +169,13 @@ export default async function handler(req, res) {
       ...result,
       model,
       promptVersion: PROMPT_VERSION,
-      // Fine fields intentionally remain rule-engine-owned and are not read from Gemini.
-      fineCalculation: { status: 'pending_rule_lookup' },
+      ruleVersion: 'data/penalty-rules.json',
+      // These values are rule-engine estimates only; user confirmation remains required.
+      fineCalculation: {
+        status: result.fine_calculation_status,
+        estimatedMin: result.estimated_fine_min,
+        estimatedMax: result.estimated_fine_max,
+      },
     });
   } catch (error) {
     console.error('Gemini analysis error', { name: error?.name, message: error?.message });
