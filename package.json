@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "build": "node --check api/analyze.js"
+    "build": "node --check api/analyze.js && node --check api/rules.js && node --check api/schema.js && node --check api/vision-provider.js && node --check api/errors.js && node --check api/prompt.js"
   }
 }
