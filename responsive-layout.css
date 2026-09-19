@@ -1,0 +1,98 @@
+/* Responsive layout hardening for RoadLens AI. Loaded by layout-fix.js. */
+:root {
+  --layout-gap: clamp(10px, 2vw, 18px);
+  --touch-min: 44px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { overflow-x: hidden; }
+body { min-width: 0; overflow-x: hidden; }
+img, video, canvas, svg { max-width: 100%; }
+button, input[type="button"], input[type="submit"], input[type="reset"], a.btn, a.button {
+  box-sizing: border-box;
+  min-height: var(--touch-min);
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+  text-align: center;
+}
+button { flex: 0 1 auto; }
+
+.shell, main, .panel, .card, .flow-card, .flow-page, .workspace, .hero, .result-head,
+.result-head > *, .toolbar, .actions, .history-item, .history-list, .flow-grid,
+.flow-results, .flow-review, .flow-review-item, .flow-meta, .total {
+  min-width: 0;
+}
+
+.actions, .toolbar, .flow-actions, .flow-review-options, .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--layout-gap);
+  min-width: 0;
+}
+
+.actions > *, .toolbar > *, .flow-actions > *, .flow-review-options > *, .tabs > * {
+  min-width: 0;
+}
+
+.result-head { display: flex; flex-wrap: wrap; gap: var(--layout-gap); align-items: flex-start; }
+.result-head > :first-child { flex: 1 1 16rem; }
+.result-head > .toolbar, .result-head > .actions { flex: 1 1 20rem; justify-content: flex-end; }
+
+.workspace, .flow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.workspace > *, .flow-grid > * { min-width: 0; }
+
+/* Evidence and review controls must never be forced into one narrow row. */
+.flow-review-options > *, .flow-actions > *, .toolbar > *, .actions > * {
+  flex: 0 1 auto;
+}
+.flow-review-item { overflow-wrap: anywhere; }
+.flow-image, .flow-images img { display: block; width: 100%; height: auto; max-height: min(60vh, 560px); object-fit: contain; }
+
+/* Do not use absolute/fixed positioning for ordinary controls. Decorative elements
+   can remain positioned by their existing component rules. */
+.flow-actions, .flow-review-options { position: static; }
+
+@media (max-width: 800px) {
+  .shell { padding-left: 16px; padding-right: 16px; }
+  header { flex-wrap: wrap; gap: 12px; }
+  header .badge { max-width: 100%; }
+  .hero, .workspace, .flow-grid { grid-template-columns: 1fr; }
+  .hero { gap: 28px; }
+  .stats { grid-template-columns: 1fr; }
+  .panel, .flow-card { padding: clamp(16px, 4vw, 24px); }
+  .result-head > .toolbar, .result-head > .actions { justify-content: stretch; }
+  .result-head > .toolbar > *, .result-head > .actions > *,
+  .flow-actions > *, .flow-review-options > *, .actions > * {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .tabs { overflow: visible; }
+  .tabs > * { flex: 1 1 calc(50% - var(--layout-gap)); }
+  .visual { min-height: 250px; }
+}
+
+@media (max-width: 430px) {
+  .shell { padding-left: 12px; padding-right: 12px; }
+  .panel, .flow-card { border-radius: 14px; padding: 14px; }
+  .tabs > *, .toolbar > *, .actions > *, .flow-actions > *, .flow-review-options > * {
+    flex-basis: 100%;
+  }
+  .btn, button, input[type="button"], input[type="submit"], input[type="reset"] {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px;
+  }
+  .flow-meta { grid-template-columns: 1fr; }
+  .result-head { gap: 12px; }
+  h1 { font-size: clamp(32px, 12vw, 48px); }
+}
+
+@media (max-width: 320px) {
+  .shell { padding-left: 10px; padding-right: 10px; }
+  .panel, .flow-card { padding: 12px; }
+  .sub, .small { overflow-wrap: anywhere; }
+}
