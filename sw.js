@@ -9,5 +9,5 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
     if (response.ok && new URL(request.url).origin === self.location.origin) { const copy = response.clone(); caches.open(CACHE).then((cache) => cache.put(request, copy)); }
     return response;
-  }).catch(() => caches.match('./index.html'))));
+  })));
 });
