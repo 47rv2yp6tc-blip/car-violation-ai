@@ -2,5 +2,8 @@
   "name": "RoadLens AI basic tests",
   "private": true,
   "type": "module",
-  "scripts": {"test":"node --test tests/*.test.js"}
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node --check api/analyze.js"
+  }
 }
