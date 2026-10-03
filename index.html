@@ -1,48 +1,695 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1769e0"><meta name="description" content="RoadLens AI 汽車違規影像辨識與罰鍰預估學習原型。">
-<style>
-:root{--ink:#10233f;--muted:#65758b;--line:#dce5ed;--bg:#f6f9fc;--card:#fff;--blue:#1769e0;--red:#c7444d;--amber:#a66300;--shadow:0 8px 26px #203e5c0d}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter, "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif}
-</style></head>
-<body><main class="shell">
-<header><div class="brand"><span class="mark">⌁</span>RoadLens AI</div><span class="badge">Gemini Vision · 證據優先分析</span></header>
-<section class="hero"><div><p class="eyebrow">SMART TRAFFIC ANALYSIS</p><h1>讓照片替你<br><span>看懂交通違規</span></h1><p class="lead">AI 先整理照片中實際看得到的事實，並提供依據與罰鍰預估（僅供參考）。</p></div></section>
-<nav class="tabs" aria-label="工具導覽"><button class="tab" data-scroll="history">歷史紀錄</button><button class="tab" data-scroll="calculator">罰款計算器</button><button class="tab" data-scroll="dashboard">Dashboard</button><button class="tab" data-scroll="settings">設定</button><button class="tab" id="theme">切換主題</button></nav>
-<section id="workspace" class="workspace"><div class="panel"><h2>照片分析</h2><p class="sub">支援 JPG、PNG、WEBP；可加入最多 6 張同一事件照片，每張最多 10 MB。</p><div id="drop" class="drop"><input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple><input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none"><div id="dropText"><strong>拖曳照片到這裡，或選擇圖片</strong><p class="sub">建議同時拍到車輛、道路標線與相關交通標誌。</p></div><div id="previews" class="hidden"></div></div><div class="toolbar" style="margin-top:12px"><button id="choose" class="btn">選擇圖片</button><button id="clear" class="btn hidden">清除</button></div><button id="analyze" class="btn primary analyze" disabled>開始 AI 分析</button><p id="qualityHint" class="small sub" aria-live="polite"></p><p class="small sub">Gemini API Key 只在伺服器端使用。</p></div><div class="panel" id="results"><div class="empty"><strong>等待照片分析</strong><p>分析結果會顯示在這裡</p></div></div></section>
-<section class="panel" id="report"><div class="result-head"><div><h2>分析報告</h2><p class="sub">完成分析後可下載或分享</p></div><div class="toolbar"><button id="txt" class="btn" disabled>下載 TXT</button><button id="json" class="btn" disabled>下載 JSON</button><button id="share" class="btn" disabled>分享／複製</button></div></div><div id="reportText" class="summary">尚未產生報告。</div></section>
-<section class="panel" id="calculator"><h2>手動罰款計算器</h2><p class="sub">金額由你輸入；未查證資料不會被當成法律事實。</p><div id="calcOptions" class="history-list"></div><div class="total"><span>預估總額</span><strong id="calcTotal">NT$ 0</strong></div></section>
-<section class="panel" id="history"><div class="result-head"><div><h2>歷史紀錄</h2><p class="sub">保存日期、違規、信心與預估金額；不保存原圖。</p></div><button id="clearHistory" class="btn">清除歷史</button><div id="historyList" class="history-list"></div></section>
-<section class="panel" id="dashboard"><h2>統計 Dashboard</h2><p class="sub">所有數據來自實際本機紀錄。</p><div id="statsPanel" class="history-list"></div></section>
-<section class="panel" id="settings"><h2>設定與 API 狀態</h2><div class="history-list"><div class="history-item"><span>AI 模式</span><strong id="apiMode">Live Vision AI</strong></div></div></section>
-<div class="notice"><b>重要提醒：</b>即使模型信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。</div>
-<script>
-(function(){'use strict';const $=id=>document.getElementById(id),input=$('photoInput'),cameraInput=$('cameraInput'),choose=$('choose'),clear=$('clear'),drop=$('drop'),dropText=$('dropText'),previews=$('previews'),analyze=$('analyze'),results=$('results'),qualityHint=$('qualityHint');const MAX_IMAGES=6,MAX_SIZE=15*1024*1024;let selectedFiles=[];function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]});}function msg(t,e){results.innerHTML='<div class="'+(e?'error':'summary')+'">'+esc(t)+'</div>';}function read(f){return new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(x.result);x.onerror=()=>j(new Error('read'));x.readAsDataURL(f);});}function updateUI(){const count=selectedFiles.length;analyze.disabled=count===0;clear.classList.toggle('hidden',count===0);qualityHint.textContent=count>0?`已選擇 ${count} 張照片`:''}function clearAll(){selectedFiles=[];previews.innerHTML='';previews.classList.add('hidden');if(dropText){dropText.style.display='block';}updateUI();}async function analyzeImages(){if(!selectedFiles.length)return;analyze.disabled=true;msg('正在分析…');try{const images=await Promise.all(selectedFiles.map(read));const response=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images:images})});const result=await response.json();if(!response.ok){msg((result.error||'分析失敗，請稍後再試'),true);return;}displayResults(result);saveToHistory(result);}catch(err){msg('分析服務暫時無法使用，請稍後再試',true);}finally{analyze.disabled=false;}}function displayResults(data){let html='<div class="result-head"><h3>分析結果</h3></div>';if(data.violations&&data.violations.length){html+='<div class="violations">';data.violations.forEach((v)=>{html+=`<div class="violation"><strong>${esc(v.violation)}</strong><p>信心：${v.confidence}% | ${v.confidence_level}</p><p>${esc(v.evidence)}</p>`;if(v.uncertain)html+='<p style="color:var(--amber)">⚠ 此判定不確定</p>';if(v.fine_min!==null)html+=`<p>罰鍰範圍：NT$${v.fine_min}–${v.fine_max}</p>`;html+='</div>';});html+='</div>';}else{html+='<p>無法從此照片確認違規。</p>';}if(data.estimated_fine_min!==null){html+=`<p><strong>預估罰鍰總額：NT$${data.estimated_fine_min}–${data.estimated_fine_max}</strong></p>`;}results.innerHTML=html;$('reportText').textContent=data.summary||'未提供摘要';}function saveToHistory(data){const entry={date:new Date().toISOString(),violations:data.violations||[],estimatedMin:data.estimated_fine_min,estimatedMax:data.estimated_fine_max};const history=JSON.parse(localStorage.getItem('roadlens-history')||'[]');history.unshift(entry);localStorage.setItem('roadlens-history',JSON.stringify(history.slice(0,50)));updateHistoryUI();}function updateHistoryUI(){const history=JSON.parse(localStorage.getItem('roadlens-history')||'[]');const historyList=$('historyList');if(!history.length){historyList.innerHTML='<p>無紀錄</p>';return;}historyList.innerHTML=history.map((e,i)=>`<div class="history-item"><span>${new Date(e.date).toLocaleString('zh-TW')}</span><strong>${e.violations.length} 項違規</strong><p>${e.estimatedMin!==null?`NT$${e.estimatedMin}–${e.estimatedMax}`:'無罰鍰資料'}</p></div>`).join('');}if(input)input.addEventListener('change',(e)=>{const files=Array.from(e.target.files||[]);if(files.length>MAX_IMAGES){alert(`最多只能選擇 ${MAX_IMAGES} 張照片`);return;}selectedFiles=files;updateUI();renderPreviews();});if(drop){drop.addEventListener('dragover',(e)=>{e.preventDefault();drop.style.borderColor='var(--blue)';});drop.addEventListener('dragleave',()=>{drop.style.borderColor='';});drop.addEventListener('drop',(e)=>{e.preventDefault();drop.style.borderColor='';const files=Array.from(e.dataTransfer?.files||[]);if(files.length>MAX_IMAGES){alert(`最多只能選擇 ${MAX_IMAGES} 張照片`);return;}selectedFiles=files;updateUI();renderPreviews();});}if(choose)choose.addEventListener('click',()=>{input.removeAttribute('capture');input.click();});if(clear)clear.addEventListener('click',clearAll);if(analyze)analyze.addEventListener('click',analyzeImages);async function renderPreviews(){previews.innerHTML='';for(const file of selectedFiles){const url=await read(file);const img=document.createElement('img');img.src=url;img.style.maxWidth='100px';img.style.maxHeight='100px';img.style.margin='4px';previews.appendChild(img);}previews.classList.remove('hidden');if(dropText){dropText.style.display='none';}}updateHistoryUI();})();
-</script>
-
-<!-- Auto-swap service worker: request skipWaiting on waiting worker and reload on controllerchange -->
-<script>
-if ('serviceWorker' in navigator) {
-  try {
-    navigator.serviceWorker.register('/sw.js').then(function (reg) {
-      if (reg.waiting) {
-        try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1769e0">
+  <meta name="description" content="RoadLens AI 汽車違規影像分析與罰鍰預估">
+  <title>RoadLens AI｜交通違規影像分析</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./responsive-layout.css">
+  <style>
+    :root {
+      --ink: #10233f;
+      --muted: #65758b;
+      --line: #dce5ed;
+      --bg: #f6f9fc;
+      --card: #fff;
+      --blue: #1769e0;
+      --red: #c7444d;
+      --amber: #a66300;
+      --shadow: 0 8px 26px #203e5c0d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1160px; margin: auto; padding: 0 28px 60px; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 25px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: 0.02em;
+    }
+    .mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--blue);
+      color: white;
+      border-radius: 8px;
+      font-size: 18px;
+    }
+    .badge {
+      color: var(--blue);
+      background: #eaf2ff;
+      padding: 8px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+      align-items: center;
+      padding: 54px 0 62px;
+    }
+    .eyebrow {
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 0 0 18px;
+    }
+    h1 {
+      font-size: clamp(38px, 5vw, 64px);
+      line-height: 1.12;
+      letter-spacing: -0.055em;
+      margin: 0 0 22px;
+    }
+    h1 span { color: var(--blue); }
+    h2 {
+      margin: 0 0 7px;
+      font-size: 21px;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.8;
+      max-width: 560px;
+      margin: 0 0 32px;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 22px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn {
+      border: 0;
+      border-radius: 13px;
+      padding: 15px 23px;
+      font-weight: 800;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .primary {
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 8px 18px #1769e03d;
+    }
+    .secondary {
+      color: var(--ink);
+      background: white;
+      border: 1px solid var(--line);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 0 0 62px;
+    }
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 19px 21px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 23px;
+      margin-bottom: 5px;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .panel {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 21px;
+      padding: 27px;
+      box-shadow: 0 8px 26px #203e5c08;
+    }
+    .drop {
+      border: 1.5px dashed #a8bfd4;
+      border-radius: 16px;
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      background: #fafdff;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .drop.drag {
+      border-color: var(--blue);
+      background: #eaf2ff;
+    }
+    .upload-icon {
+      width: 57px;
+      height: 57px;
+      border-radius: 17px;
+      background: #eaf2ff;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      font-size: 25px;
+      margin: 0 auto 14px;
+    }
+    .drop p {
+      margin: 6px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .drop strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .preview {
+      max-width: 100%;
+      max-height: 230px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+    .hidden { display: none !important; }
+    .analyze {
+      width: 100%;
+      margin-top: 15px;
+    }
+    .analyze:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .empty {
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--muted);
+    }
+    .empty-icon {
+      font-size: 42px;
+      opacity: 0.45;
+      margin-bottom: 12px;
+    }
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+      margin-bottom: 17px;
+    }
+    .result-head h2 { margin: 0; }
+    .result-head .toolbar,
+    .result-head .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .violation {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--red);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .violation-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .violation-type {
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .confidence {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #eaf2ff;
+      color: var(--blue);
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .tab {
+      background: none;
+      border: none;
+      padding: 12px 16px;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      transition: 0.2s;
+    }
+    .tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+    .tab:hover {
+      color: var(--ink);
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .history-item span {
+      color: var(--muted);
+    }
+    .history-item strong {
+      color: var(--ink);
+    }
+    .notice {
+      margin-top: 38px;
+      padding: 17px 20px;
+      border-radius: 13px;
+      background: #fff8e8;
+      color: #795a25;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .notice b { color: #604514; }
+    footer {
+      color: #93a1b0;
+      text-align: center;
+      font-size: 12px;
+      padding-top: 40px;
+    }
+    input[type="file"] { display: none; }
+    @media (max-width: 800px) {
+      .hero, .workspace {
+        grid-template-columns: 1fr;
+        gap: 30px;
       }
-      reg.addEventListener('updatefound', function () {
-        var newWorker = reg.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', function () {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              try { newWorker.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
-            }
+      .hero { padding-top: 25px; }
+      .stats { grid-template-columns: 1fr; gap: 9px; }
+      .shell { padding-left: 16px; padding-right: 16px; }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .badge { max-width: 100%; }
+      .result-head {
+        flex-direction: column;
+      }
+      .result-head .toolbar,
+      .result-head .actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+    }
+    @media (max-width: 430px) {
+      .shell { padding-left: 12px; padding-right: 12px; }
+      .panel { padding: 16px; }
+      h1 { font-size: clamp(32px, 12vw, 48px); }
+      .btn, button {
+        width: 100%;
+        min-height: 46px;
+        padding: 11px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <span class="mark">⌁</span>
+        <span>RoadLens AI</span>
+      </div>
+      <span class="badge">Gemini Vision · 證據優先分析</span>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">SMART TRAFFIC ANALYSIS</p>
+        <h1>讓照片替你<br><span>看懂交通違規</span></h1>
+        <p class="lead">AI 先整理照片中實際看得到的事實，再查對當地法規，幫你預估罰款。但最終確認還是要由你和主管機關決定。</p>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="工具導覽">
+      <button class="tab active" data-scroll="workspace">照片分析</button>
+      <button class="tab" data-scroll="history">歷史紀錄</button>
+      <button class="tab" data-scroll="calculator">罰款計算器</button>
+      <button class="tab" data-scroll="dashboard">統計</button>
+      <button class="tab" data-scroll="settings">設定</button>
+    </nav>
+
+    <section id="workspace" class="workspace">
+      <div class="panel">
+        <h2>照片分析</h2>
+        <p class="sub">支援 JPG、PNG、WEBP；可加入最多 6 張同一事件照片，每張最多 10 MB。</p>
+        <div id="drop" class="drop">
+          <div>
+            <div class="upload-icon">📷</div>
+            <strong>拖放照片或點擊選擇</strong>
+            <p>可一次上傳多張同一事件的照片</p>
+          </div>
+          <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+        </div>
+        <button id="analyze" class="btn primary analyze" disabled>開始分析</button>
+      </div>
+
+      <div class="panel" id="report">
+        <div class="result-head">
+          <div>
+            <h2>分析報告</h2>
+            <p class="sub">完成分析後可下載或分享</p>
+          </div>
+          <div class="toolbar">
+            <button id="txt" class="btn secondary" style="display:none;">下載文字</button>
+            <button id="json" class="btn secondary" style="display:none;">下載 JSON</button>
+          </div>
+        </div>
+        <div id="reportContent" class="empty">
+          <div class="empty-icon">✦</div>
+          <strong>等待分析結果</strong>
+          <p>上傳照片後會在這裡顯示</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="calculator" style="display:none;">
+      <h2>手動罰款計算器</h2>
+      <p class="sub">金額由你輸入；未查證資料不會被當成法律事實。</p>
+      <div id="calcOptions" class="history-list"></div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+        <strong>預估合計：<span id="calcTotal">$0</span></strong>
+      </div>
+    </section>
+
+    <section class="panel" id="history" style="display:none;">
+      <div class="result-head">
+        <div>
+          <h2>歷史紀錄</h2>
+          <p class="sub">保存日期、違規、信心與預估金額；不保存原圖。</p>
+        </div>
+        <button id="clearHistory" class="btn secondary">清除紀錄</button>
+      </div>
+      <div id="historyList" class="history-list">
+        <div class="empty">
+          <div class="empty-icon">📋</div>
+          <p>尚無分析紀錄</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="dashboard" style="display:none;">
+      <h2>統計 Dashboard</h2>
+      <p class="sub">所有數據來自實際本機紀錄。</p>
+      <div id="statsPanel" class="history-list"></div>
+    </section>
+
+    <section class="panel" id="settings" style="display:none;">
+      <h2>設定與 API 狀態</h2>
+      <div class="history-list">
+        <div class="history-item">
+          <span>AI 模式</span>
+          <strong id="apiMode">Live Vision AI</strong>
+        </div>
+        <div class="history-item">
+          <span>本機儲存</span>
+          <strong id="storageStatus">可用</strong>
+        </div>
+        <div class="history-item">
+          <span>服務狀態</span>
+          <strong id="serviceStatus">待檢測</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="notice">
+      <b>重要提醒：</b>即使模型信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。所有分析結果與罰款範圍都只是輔助資訊，不是正式法律判定。
+    </div>
+
+    <footer>RoadLens AI · 讓道路更安全，讓判斷更透明</footer>
+  </main>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const $ = id => document.getElementById(id);
+      const drop = $('drop');
+      const input = $('photoInput');
+      const analyze = $('analyze');
+      const reportContent = $('reportContent');
+      const historyList = $('historyList');
+      const calcOptions = $('calcOptions');
+      const calcTotal = $('calcTotal');
+      const tabs = document.querySelectorAll('.tab');
+      const panels = {
+        workspace: $('workspace'),
+        history: $('history'),
+        calculator: $('calculator'),
+        dashboard: $('dashboard'),
+        settings: $('settings'),
+      };
+
+      let selectedFiles = [];
+
+      // Tab navigation
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const target = tab.dataset.scroll;
+          Object.keys(panels).forEach(key => {
+            panels[key].style.display = key === target ? 'block' : 'none';
           });
+        });
+      });
+
+      // File drop zone
+      drop.addEventListener('dragover', e => {
+        e.preventDefault();
+        drop.classList.add('drag');
+      });
+
+      drop.addEventListener('dragleave', () => {
+        drop.classList.remove('drag');
+      });
+
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        drop.classList.remove('drag');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (files.length) {
+          selectedFiles = files;
+          analyze.disabled = false;
+          updatePreview();
         }
       });
-    }).catch(function () {});
-  } catch (_) {}
-  navigator.serviceWorker.addEventListener('controllerchange', function () { try { window.location.reload(); } catch (_) {} });
-}
-</script>
 
-<script src="./upload-fix.js"></script>
-</body></html>
+      drop.addEventListener('click', () => {
+        input.click();
+      });
+
+      input.addEventListener('change', e => {
+        selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length) {
+          analyze.disabled = false;
+          updatePreview();
+        }
+      });
+
+      function updatePreview() {
+        const file = selectedFiles[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          reportContent.innerHTML = `
+            <img src="${e.target.result}" alt="預覽" style="max-width:100%;border-radius:8px;margin-bottom:16px;">
+            <p>已選擇 ${selectedFiles.length} 張照片</p>
+          `;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      analyze.addEventListener('click', async () => {
+        if (!selectedFiles.length) return;
+        analyze.disabled = true;
+        analyze.textContent = '分析中…';
+        reportContent.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>AI 正在分析照片…</p></div>';
+
+        try {
+          const images = await Promise.all(
+            selectedFiles.map(f => {
+              return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(f);
+              });
+            })
+          );
+
+          const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              images,
+              mimeTypes: selectedFiles.map(f => f.type),
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || '分析失敗');
+          }
+
+          displayResult(result);
+          saveToHistory(result);
+        } catch (err) {
+          reportContent.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${err.message}</p></div>`;
+        } finally {
+          analyze.disabled = false;
+          analyze.textContent = '開始分析';
+        }
+      });
+
+      function displayResult(result) {
+        if (!result.violations || result.violations.length === 0) {
+          reportContent.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>未偵測到違規</p></div>';
+          return;
+        }
+
+        let html = `<h3>${result.summary}</h3>`;
+        result.violations.forEach(v => {
+          html += `
+            <div class="violation">
+              <div class="violation-top">
+                <div class="violation-type">${v.violation}</div>
+                <div class="confidence">信心 ${v.confidence}%</div>
+              </div>
+              <p><strong>證據：</strong>${v.evidence}</p>
+              <p><strong>理由：</strong>${v.reason}</p>
+              ${v.fine_min && v.fine_max ? `<p><strong>預估罰款：</strong>$${v.fine_min} - $${v.fine_max}</p>` : ''}
+            </div>
+          `;
+        });
+        reportContent.innerHTML = html;
+      }
+
+      function saveToHistory(result) {
+        try {
+          const history = JSON.parse(localStorage.getItem('roadlens-history') || '[]');
+          history.unshift({
+            date: new Date().toLocaleString('zh-Hant'),
+            summary: result.summary,
+            violations: result.violations.length,
+            estimated: result.estimated_fine_max,
+          });
+          localStorage.setItem('roadlens-history', JSON.stringify(history.slice(0, 50)));
+          loadHistory();
+        } catch (_) {}
+      }
+
+      function loadHistory() {
+        try {
+          const history = JSON.parse(localStorage.getItem('roadlens-history') || '[]');
+          if (history.length === 0) {
+            historyList.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>尚無分析紀錄</p></div>';
+            return;
+          }
+          historyList.innerHTML = history.map(h => `
+            <div class="history-item">
+              <div>
+                <strong>${h.date}</strong>
+                <p style="margin:4px 0 0;color:var(--muted);font-size:12px;">${h.summary}</p>
+              </div>
+              <span>${h.violations} 項違規</span>
+            </div>
+          `).join('');
+        } catch (_) {}
+      }
+
+      $('clearHistory').addEventListener('click', () => {
+        if (confirm('確定要清除所有歷史紀錄嗎？')) {
+          localStorage.removeItem('roadlens-history');
+          loadHistory();
+        }
+      });
+
+      loadHistory();
+    })();
+  </script>
+
+  <!-- Auto-swap service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      try {
+        navigator.serviceWorker.register('/sw.js').then(function (reg) {
+          if (reg.waiting) {
+            try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+          }
+          reg.addEventListener('updatefound', function () {
+            var newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', function () {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  try { newWorker.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+                }
+              });
+            }
+          });
+        }).catch(function () {});
+      } catch (_) {}
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        try { window.location.reload(); } catch (_) {}
+      });
+    }
+  </script>
+
+  <script src="./upload-fix.js"></script>
+</body>
+</html>
