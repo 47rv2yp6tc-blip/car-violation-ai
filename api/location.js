@@ -4,13 +4,34 @@ const countries = require('../data/locations.json');
 
 const normalize = (value) => String(value || '').trim().toLocaleLowerCase();
 
+function matchesCountry(item, value) {
+  const valueCode = String(value?.countryCode || '').toUpperCase();
+  if (valueCode && String(item?.countryCode || '').toUpperCase() === valueCode) {
+    return true;
+  }
+
+  const itemNames = [
+    item?.countryName,
+    item?.localizedName,
+    item?.localName,
+    item?.localisedName,
+    item?.name,
+  ].map(normalize).filter(Boolean);
+
+  const valueNames = [
+    value?.countryName,
+    value?.localizedName,
+    value?.localName,
+    value?.localisedName,
+    value?.name,
+  ].map(normalize).filter(Boolean);
+
+  return valueNames.some((candidate) => itemNames.includes(candidate));
+}
+
 export function normalizeLocation(value) {
   if (!value || typeof value !== 'object') return null;
-  const country = countries.find((item) => 
-    item.countryCode === String(value.countryCode || '').toUpperCase() || 
-    normalize(item.countryName) === normalize(value.countryName) || 
-    normalize(item.localName) === normalize(value.localName)
-  );
+  const country = countries.find((item) => matchesCountry(item, value));
   return {
     countryCode: country?.countryCode || null,
     countryName: country?.countryName || null,
@@ -25,5 +46,6 @@ export function normalizeLocation(value) {
 }
 
 export function locationRuleStatus(location) {
-  return location?.countryCode ? 'no_country_rule_data' : 'location_not_selected';
+  if (!location || typeof location !== 'object') return 'location_not_selected';
+  return location.countryCode ? 'no_country_rule_data' : 'location_not_selected';
 }
