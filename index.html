@@ -2,12 +2,14 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#1769e0">
-  <meta name="description" content="RoadLens AI 汽車違規影像分析與罰鍰預估">
+  <meta name="description" content="RoadLens AI - AI 汽車違規影像分析與罰鍰預估系統">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>RoadLens AI｜交通違規影像分析</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./responsive-layout.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231769e0' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='central'>⌁</text></svg>">
   <style>
     :root {
       --ink: #10233f;
@@ -18,678 +20,1498 @@
       --blue: #1769e0;
       --red: #c7444d;
       --amber: #a66300;
-      --shadow: 0 8px 26px #203e5c0d;
+      --green: #147d67;
+      --shadow: 0 8px 26px rgba(32, 62, 92, 0.08);
+      --radius: 12px;
+      --gap: clamp(10px, 2vw, 18px);
     }
-    * { box-sizing: border-box; }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
     body {
       margin: 0;
+      padding: 0;
       background: var(--bg);
       color: var(--ink);
-      font-family: Inter, "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans TC", sans-serif;
+      font-size: 16px;
       line-height: 1.5;
+      min-height: 100vh;
     }
-    button, input { font: inherit; }
-    button { cursor: pointer; }
-    .shell { max-width: 1160px; margin: auto; padding: 0 28px 60px; }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    img,
+    video,
+    canvas,
+    svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 max(12px, env(safe-area-inset-left)) 60px max(12px, env(safe-area-inset-right));
+    }
+
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 25px 0;
+      gap: 16px;
+      padding: 20px 0;
       border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
     }
+
     .brand {
       display: flex;
       align-items: center;
       gap: 12px;
       font-weight: 800;
-      font-size: 19px;
+      font-size: 18px;
       letter-spacing: 0.02em;
+      color: var(--ink);
     }
-    .mark {
-      display: inline-flex;
+
+    .brand-mark {
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       background: var(--blue);
       color: white;
-      border-radius: 8px;
-      font-size: 18px;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: bold;
     }
+
     .badge {
-      color: var(--blue);
       background: #eaf2ff;
+      color: var(--blue);
       padding: 8px 14px;
-      border-radius: 99px;
-      font-size: 13px;
+      border-radius: 20px;
+      font-size: 12px;
       font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
     }
+
     .hero {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 40px;
-      align-items: center;
-      padding: 54px 0 62px;
+      padding: 40px 0;
+      text-align: center;
     }
+
     .eyebrow {
       color: var(--blue);
       text-transform: uppercase;
-      letter-spacing: 0.13em;
+      letter-spacing: 0.12em;
       font-size: 12px;
       font-weight: 800;
-      margin: 0 0 18px;
+      margin: 0 0 16px;
     }
+
     h1 {
-      font-size: clamp(38px, 5vw, 64px);
-      line-height: 1.12;
-      letter-spacing: -0.055em;
-      margin: 0 0 22px;
+      font-size: clamp(28px, 8vw, 56px);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin: 0 0 20px;
+      color: var(--ink);
     }
-    h1 span { color: var(--blue); }
+
+    h1 strong {
+      color: var(--blue);
+      font-weight: inherit;
+    }
+
     h2 {
-      margin: 0 0 7px;
-      font-size: 21px;
+      font-size: 22px;
+      line-height: 1.3;
+      margin: 0 0 8px;
+      color: var(--ink);
     }
+
     .lead {
       color: var(--muted);
-      font-size: 18px;
-      line-height: 1.8;
-      max-width: 560px;
-      margin: 0 0 32px;
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 600px;
+      margin: 0 auto 32px;
     }
+
     .sub {
       color: var(--muted);
       font-size: 14px;
-      margin: 0 0 22px;
+      margin: 0 0 20px;
+      line-height: 1.6;
     }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+
     .btn {
-      border: 0;
-      border-radius: 13px;
-      padding: 15px 23px;
-      font-weight: 800;
-      transition: 0.2s;
-      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      user-select: none;
+      min-height: 44px;
+      white-space: nowrap;
     }
-    .btn:hover { transform: translateY(-2px); }
-    .primary {
-      color: white;
+
+    .btn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(23, 105, 224, 0.2);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
       background: var(--blue);
-      box-shadow: 0 8px 18px #1769e03d;
+      color: white;
+      box-shadow: 0 4px 12px rgba(23, 105, 224, 0.25);
     }
-    .secondary {
+
+    .btn-secondary {
+      background: white;
       color: var(--ink);
-      background: white;
       border: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(32, 62, 92, 0.04);
     }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin: 0 0 62px;
+
+    .btn-danger {
+      background: #ffecec;
+      color: var(--red);
     }
-    .stat {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 17px;
-      padding: 19px 21px;
+
+    .btn-success {
+      background: #ecf8f2;
+      color: var(--green);
     }
-    .stat strong {
-      display: block;
-      font-size: 23px;
-      margin-bottom: 5px;
-    }
-    .stat span {
-      color: var(--muted);
+
+    .btn-small {
+      padding: 8px 12px;
       font-size: 13px;
+      min-height: 32px;
     }
-    .workspace {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: start;
+
+    .flex-row {
+      display: flex;
+      gap: var(--gap);
+      flex-wrap: wrap;
+      align-items: center;
     }
+
     .panel {
       background: white;
       border: 1px solid var(--line);
-      border-radius: 21px;
-      padding: 27px;
-      box-shadow: 0 8px 26px #203e5c08;
-    }
-    .drop {
-      border: 1.5px dashed #a8bfd4;
       border-radius: 16px;
-      min-height: 220px;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 20px;
-      background: #fafdff;
-      transition: 0.2s;
-      cursor: pointer;
+      padding: clamp(16px, 4vw, 28px);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
     }
-    .drop.drag {
+
+    .workspace {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fafbfc;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--blue);
+      background: #f0f5ff;
+    }
+
+    .drop-zone.drag-active {
       border-color: var(--blue);
       background: #eaf2ff;
+      box-shadow: 0 0 0 6px rgba(23, 105, 224, 0.1);
     }
-    .upload-icon {
-      width: 57px;
-      height: 57px;
-      border-radius: 17px;
-      background: #eaf2ff;
-      display: grid;
-      place-items: center;
-      color: var(--blue);
-      font-size: 25px;
-      margin: 0 auto 14px;
+
+    .drop-icon {
+      font-size: 42px;
+      margin: 0 0 12px;
     }
-    .drop p {
-      margin: 6px 0;
+
+    .drop-text {
       color: var(--muted);
       font-size: 14px;
+      margin: 8px 0 0;
     }
-    .drop strong {
-      display: block;
-      color: var(--ink);
-      font-weight: 700;
-    }
-    .preview {
-      max-width: 100%;
-      max-height: 230px;
-      border-radius: 12px;
-      object-fit: cover;
-    }
-    .hidden { display: none !important; }
-    .analyze {
-      width: 100%;
-      margin-top: 15px;
-    }
-    .analyze:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .empty {
-      text-align: center;
-      padding: 70px 20px;
-      color: var(--muted);
-    }
-    .empty-icon {
-      font-size: 42px;
-      opacity: 0.45;
-      margin-bottom: 12px;
-    }
-    .result-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 18px;
-      margin-bottom: 17px;
-    }
-    .result-head h2 { margin: 0; }
-    .result-head .toolbar,
-    .result-head .actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-    .violation {
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--red);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-    .violation-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-    .violation-type {
-      font-weight: 700;
-      color: var(--ink);
-    }
-    .confidence {
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      background: #eaf2ff;
-      color: var(--blue);
-    }
+
     .tabs {
       display: flex;
       gap: 8px;
       margin-bottom: 24px;
       border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
+
     .tab {
+      padding: 12px 16px;
       background: none;
       border: none;
-      padding: 12px 16px;
       color: var(--muted);
-      cursor: pointer;
       font-weight: 600;
-      border-bottom: 2px solid transparent;
-      transition: 0.2s;
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
     }
+
+    .tab:hover {
+      color: var(--ink);
+    }
+
     .tab.active {
       color: var(--blue);
       border-bottom-color: var(--blue);
     }
-    .tab:hover {
-      color: var(--ink);
+
+    .tab-content {
+      display: none;
     }
-    .history-list {
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .result-head {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
     }
+
+    .result-head > div:first-child {
+      flex: 1 1 auto;
+      min-width: 200px;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
+    .empty-title {
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .violation-card {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--red);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: white;
+      transition: all 0.2s ease;
+    }
+
+    .violation-card:hover {
+      box-shadow: 0 4px 12px rgba(199, 68, 77, 0.1);
+    }
+
+    .violation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .violation-type {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .confidence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #eaf2ff;
+      color: var(--blue);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .confidence-badge.high {
+      background: #ecf8f2;
+      color: var(--green);
+    }
+
+    .confidence-badge.low {
+      background: #ffecec;
+      color: var(--red);
+    }
+
+    .violation-detail {
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .violation-detail strong {
+      color: var(--ink);
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
     .history-item {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 12px;
       padding: 12px;
       background: white;
       border: 1px solid var(--line);
       border-radius: 8px;
+      margin-bottom: 8px;
     }
-    .history-item span {
+
+    .history-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-item-date {
+      font-weight: 600;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .history-item-summary {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .history-item-meta {
+      text-align: right;
+      white-space: nowrap;
+      font-size: 12px;
       color: var(--muted);
     }
-    .history-item strong {
-      color: var(--ink);
+
+    .alert {
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
     }
-    .notice {
-      margin-top: 38px;
-      padding: 17px 20px;
-      border-radius: 13px;
+
+    .alert-info {
+      background: #eaf2ff;
+      color: var(--blue);
+      border: 1px solid rgba(23, 105, 224, 0.2);
+    }
+
+    .alert-warning {
       background: #fff8e8;
       color: #795a25;
+      border: 1px solid rgba(166, 99, 0, 0.2);
+    }
+
+    .alert-error {
+      background: #ffecec;
+      color: var(--red);
+      border: 1px solid rgba(199, 68, 77, 0.2);
+    }
+
+    .alert-success {
+      background: #ecf8f2;
+      color: var(--green);
+      border: 1px solid rgba(20, 125, 103, 0.2);
+    }
+
+    .alert-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .alert-content {
+      flex: 1;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .alert-text {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(23, 105, 224, 0.2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .notice {
+      background: #fff8e8;
+      color: #795a25;
+      padding: 16px;
+      border-radius: var(--radius);
+      border-left: 4px solid var(--amber);
+      margin: 32px 0;
       font-size: 13px;
       line-height: 1.7;
     }
-    .notice b { color: #604514; }
-    footer {
-      color: #93a1b0;
-      text-align: center;
-      font-size: 12px;
-      padding-top: 40px;
+
+    .notice strong {
+      color: #604514;
+      display: block;
+      margin-bottom: 6px;
     }
-    input[type="file"] { display: none; }
-    @media (max-width: 800px) {
-      .hero, .workspace {
-        grid-template-columns: 1fr;
-        gap: 30px;
+
+    footer {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--line);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--blue);
+      animation: progress 0.3s ease;
+    }
+
+    @keyframes progress {
+      from {
+        width: 0;
       }
-      .hero { padding-top: 25px; }
-      .stats { grid-template-columns: 1fr; gap: 9px; }
-      .shell { padding-left: 16px; padding-right: 16px; }
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
       header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+        padding: 16px 0;
       }
-      .badge { max-width: 100%; }
+
+      .hero {
+        padding: 28px 0;
+      }
+
+      h1 {
+        font-size: clamp(24px, 6vw, 40px);
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
       .result-head {
         flex-direction: column;
       }
-      .result-head .toolbar,
-      .result-head .actions {
+
+      .result-actions {
         width: 100%;
         justify-content: stretch;
       }
+
+      .result-actions .btn {
+        flex: 1;
+      }
+
+      .drop-zone {
+        padding: 20px;
+      }
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
     }
-    @media (max-width: 430px) {
-      .shell { padding-left: 12px; padding-right: 12px; }
-      .panel { padding: 16px; }
-      h1 { font-size: clamp(32px, 12vw, 48px); }
-      .btn, button {
-        width: 100%;
-        min-height: 46px;
-        padding: 11px 14px;
+
+    @media (max-width: 480px) {
+      .shell {
+        padding-left: 8px;
+        padding-right: 8px;
+        padding-bottom: 40px;
+      }
+
+      header {
+        padding: 12px 0;
+        gap: 8px;
+      }
+
+      .brand {
+        font-size: 16px;
+        gap: 8px;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+      }
+
+      h1 {
+        font-size: clamp(20px, 5vw, 28px);
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+        min-height: 40px;
+      }
+
+      .panel {
+        padding: 14px;
+        border-radius: 12px;
+      }
+
+      .violation-card {
+        padding: 12px;
+      }
+
+      .empty-state {
+        padding: 40px 16px;
+      }
+
+      .empty-icon {
+        font-size: 36px;
+      }
+
+      .result-head {
+        gap: 8px;
+      }
+
+      .notice {
+        padding: 12px;
+        font-size: 12px;
+      }
+    }
+
+    /* Printing */
+    @media print {
+      body {
+        background: white;
+      }
+
+      .btn,
+      .tabs,
+      footer,
+      .result-actions {
+        display: none;
+      }
+
+      .panel {
+        box-shadow: none;
+        page-break-inside: avoid;
+      }
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #f0f4f8;
+        --muted: #a8b8c8;
+        --line: #2d3d4d;
+        --bg: #0f1419;
+        --card: #1a2332;
+        --shadow: 0 8px 26px rgba(0, 0, 0, 0.3);
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      .drop-zone {
+        background: #1a2332;
+      }
+
+      .drop-zone:hover {
+        background: #1a2f50;
+      }
+
+      .drop-zone.drag-active {
+        background: #1a2f50;
+      }
+
+      .btn-secondary {
+        background: #1a2332;
+        color: var(--ink);
+      }
+
+      .panel,
+      .violation-card,
+      .history-item {
+        background: var(--card);
       }
     }
   </style>
 </head>
 <body>
-  <main class="shell">
+  <div class="shell">
     <header>
       <div class="brand">
-        <span class="mark">⌁</span>
+        <div class="brand-mark">⌁</div>
         <span>RoadLens AI</span>
       </div>
       <span class="badge">Gemini Vision · 證據優先分析</span>
     </header>
 
-    <section class="hero">
-      <div>
-        <p class="eyebrow">SMART TRAFFIC ANALYSIS</p>
-        <h1>讓照片替你<br><span>看懂交通違規</span></h1>
-        <p class="lead">AI 先整理照片中實際看得到的事實，再查對當地法規，幫你預估罰款。但最終確認還是要由你和主管機關決定。</p>
-      </div>
-    </section>
-
-    <nav class="tabs" aria-label="工具導覽">
-      <button class="tab active" data-scroll="workspace">照片分析</button>
-      <button class="tab" data-scroll="history">歷史紀錄</button>
-      <button class="tab" data-scroll="calculator">罰款計算器</button>
-      <button class="tab" data-scroll="dashboard">統計</button>
-      <button class="tab" data-scroll="settings">設定</button>
-    </nav>
-
-    <section id="workspace" class="workspace">
-      <div class="panel">
-        <h2>照片分析</h2>
-        <p class="sub">支援 JPG、PNG、WEBP；可加入最多 6 張同一事件照片，每張最多 10 MB。</p>
-        <div id="drop" class="drop">
-          <div>
-            <div class="upload-icon">📷</div>
-            <strong>拖放照片或點擊選擇</strong>
-            <p>可一次上傳多張同一事件的照片</p>
-          </div>
-          <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-        </div>
-        <button id="analyze" class="btn primary analyze" disabled>開始分析</button>
-      </div>
-
-      <div class="panel" id="report">
-        <div class="result-head">
-          <div>
-            <h2>分析報告</h2>
-            <p class="sub">完成分析後可下載或分享</p>
-          </div>
-          <div class="toolbar">
-            <button id="txt" class="btn secondary" style="display:none;">下載文字</button>
-            <button id="json" class="btn secondary" style="display:none;">下載 JSON</button>
-          </div>
-        </div>
-        <div id="reportContent" class="empty">
-          <div class="empty-icon">✦</div>
-          <strong>等待分析結果</strong>
-          <p>上傳照片後會在這裡顯示</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel" id="calculator" style="display:none;">
-      <h2>手動罰款計算器</h2>
-      <p class="sub">金額由你輸入；未查證資料不會被當成法律事實。</p>
-      <div id="calcOptions" class="history-list"></div>
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
-        <strong>預估合計：<span id="calcTotal">$0</span></strong>
-      </div>
-    </section>
-
-    <section class="panel" id="history" style="display:none;">
-      <div class="result-head">
-        <div>
-          <h2>歷史紀錄</h2>
-          <p class="sub">保存日期、違規、信心與預估金額；不保存原圖。</p>
-        </div>
-        <button id="clearHistory" class="btn secondary">清除紀錄</button>
-      </div>
-      <div id="historyList" class="history-list">
-        <div class="empty">
-          <div class="empty-icon">📋</div>
-          <p>尚無分析紀錄</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel" id="dashboard" style="display:none;">
-      <h2>統計 Dashboard</h2>
-      <p class="sub">所有數據來自實際本機紀錄。</p>
-      <div id="statsPanel" class="history-list"></div>
-    </section>
-
-    <section class="panel" id="settings" style="display:none;">
-      <h2>設定與 API 狀態</h2>
-      <div class="history-list">
-        <div class="history-item">
-          <span>AI 模式</span>
-          <strong id="apiMode">Live Vision AI</strong>
-        </div>
-        <div class="history-item">
-          <span>本機儲存</span>
-          <strong id="storageStatus">可用</strong>
-        </div>
-        <div class="history-item">
-          <span>服務狀態</span>
-          <strong id="serviceStatus">待檢測</strong>
-        </div>
-      </div>
-    </section>
-
-    <div class="notice">
-      <b>重要提醒：</b>即使模型信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。所有分析結果與罰款範圍都只是輔助資訊，不是正式法律判定。
+    <div class="hero">
+      <p class="eyebrow">🚗 SMART TRAFFIC ANALYSIS</p>
+      <h1>讓照片替你<br><strong>看懂交通違規</strong></h1>
+      <p class="lead">AI 先整理照片中實際看得到的事實，再查對當地法規，幫你預估罰款。但最終確認還是要由你和主管機關決定。</p>
     </div>
 
-    <footer>RoadLens AI · 讓道路更安全，讓判斷更透明</footer>
-  </main>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="analyze">📷 照片分析</button>
+      <button class="tab" role="tab" data-tab="history">📋 歷史紀錄</button>
+      <button class="tab" role="tab" data-tab="calculator">💰 罰款計算</button>
+      <button class="tab" role="tab" data-tab="settings">⚙️ 設定</button>
+    </nav>
+
+    <!-- Analyze Tab -->
+    <div class="tab-content active" id="analyze" role="tabpanel">
+      <div class="workspace">
+        <div class="panel">
+          <h2>上傳照片</h2>
+          <p class="sub">支援 JPG、PNG、WEBP 格式，最多 6 張，每張 10 MB 以內</p>
+          
+          <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="拖放照片或點擊選擇">
+            <div class="drop-icon">📸</div>
+            <div style="font-weight: 600; color: var(--ink);">拖放照片或點擊選擇</div>
+            <div class="drop-text">可一次上傳多張同一事件的照片</div>
+          </div>
+
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" multiple aria-hidden="true">
+
+          <div id="fileList" style="margin-top: 16px; display: none;">
+            <p style="font-size: 13px; color: var(--muted); margin: 0 0 8px;">已選擇的照片：</p>
+            <div id="fileNames" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+
+          <button class="btn btn-primary" id="analyzeBtn" style="width: 100%; margin-top: 16px;" disabled>
+            <span id="analyzeBtnText">選擇照片開始分析</span>
+          </button>
+        </div>
+
+        <div class="panel">
+          <div class="result-head">
+            <div>
+              <h2>分析結果</h2>
+              <p class="sub">AI 分析完成後會在這裡顯示</p>
+            </div>
+            <div class="result-actions" id="resultActions" style="display: none;">
+              <button class="btn btn-secondary btn-small" id="downloadTxt">📄 文字</button>
+              <button class="btn btn-secondary btn-small" id="downloadJson">📋 JSON</button>
+            </div>
+          </div>
+
+          <div id="resultContent" class="empty-state">
+            <div class="empty-icon">✦</div>
+            <div class="empty-title">等待分析結果</div>
+            <p>上傳照片後會在這裡顯示 AI 分析的違規項目、信心度和預估罰款</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div class="tab-content" id="history" role="tabpanel">
+      <div class="panel">
+        <div class="result-head">
+          <div>
+            <h2>分析歷史</h2>
+            <p class="sub">最近的分析紀錄（保留 30 筆）</p>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-danger btn-small" id="clearHistoryBtn">🗑️ 清除歷史</button>
+          </div>
+        </div>
+
+        <div id="historyContent" class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">尚無分析紀錄</div>
+          <p>分析照片後會保存紀錄在這裡</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculator Tab -->
+    <div class="tab-content" id="calculator" role="tabpanel">
+      <div class="panel">
+        <h2>手動罰款計算器</h2>
+        <p class="sub">輸入違規項目和罰款金額進行計算</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <input type="text" id="violationType" placeholder="違規類型" style="padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px;">
+          <input type="number" id="fineAmount" placeholder="罰款金額" style="padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px;">
+        </div>
+
+        <button class="btn btn-primary" id="addCalcBtn" style="width: 100%;">+ 新增項目</button>
+
+        <div id="calcList" style="margin-top: 20px; display: none;">
+          <p style="font-size: 13px; color: var(--muted); margin: 0 0 12px; font-weight: 600;">計算清單：</p>
+          <div id="calcItems"></div>
+          <div style="padding: 16px; background: #f6f9fc; border-radius: 8px; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; color: var(--ink);">合計：</span>
+              <span style="font-size: 20px; font-weight: 700; color: var(--blue);">$<span id="calcTotal">0</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content" id="settings" role="tabpanel">
+      <div class="panel">
+        <h2>設定與狀態</h2>
+        <p class="sub">系統資訊和本機儲存狀態</p>
+
+        <div style="display: grid; gap: 12px; margin-top: 20px;">
+          <div class="history-item" style="margin: 0;">
+            <div>
+              <div style="font-weight: 600; color: var(--ink);">AI 模式</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">使用 Google Gemini Vision</div>
+            </div>
+            <span style="color: var(--green); font-weight: 600;">✓ 啟用</span>
+          </div>
+
+          <div class="history-item" style="margin: 0;">
+            <div>
+              <div style="font-weight: 600; color: var(--ink);">本機儲存</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">分析歷史和設定</div>
+            </div>
+            <span id="storageStatus" style="color: var(--green); font-weight: 600;">✓ 可用</span>
+          </div>
+
+          <div class="history-item" style="margin: 0;">
+            <div>
+              <div style="font-weight: 600; color: var(--ink);">Service Worker</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">離線快取和推送</div>
+            </div>
+            <span id="swStatus" style="color: var(--muted); font-weight: 600;">⏳ 檢測中</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top: 20px;">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <div class="alert-title">隱私政策</div>
+            <div class="alert-text">照片由瀏覽器直接傳送到 AI 分析服務，本應用不保存原始照片。分析歷史只保存在你的瀏覽器本機。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>⚠️ 重要提醒</strong><br>
+      即使 AI 信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。所有分析結果與罰款範圍都只是輔助資訊，不是正式法律判定。
+    </div>
+
+    <footer>
+      <p>RoadLens AI · 讓道路更安全，讓判斷更透明<br>
+      <small>© 2026 · 版本 1.0 · <a href="https://github.com/47rv2yp6tc-blip/car-violation-ai">GitHub</a></small></p>
+    </footer>
+  </div>
 
   <script>
-    (function() {
-      'use strict';
+    'use strict';
 
-      const $ = id => document.getElementById(id);
-      const drop = $('drop');
-      const input = $('photoInput');
-      const analyze = $('analyze');
-      const reportContent = $('reportContent');
-      const historyList = $('historyList');
-      const calcOptions = $('calcOptions');
-      const calcTotal = $('calcTotal');
-      const tabs = document.querySelectorAll('.tab');
-      const panels = {
-        workspace: $('workspace'),
-        history: $('history'),
-        calculator: $('calculator'),
-        dashboard: $('dashboard'),
-        settings: $('settings'),
-      };
+    // ============================================================================
+    // Constants & Configuration
+    // ============================================================================
+    const CONFIG = {
+      MAX_FILES: 6,
+      MAX_FILE_SIZE: 10 * 1024 * 1024, // 10 MB
+      API_ENDPOINT: '/api/analyze',
+      STORAGE_HISTORY: 'roadlens_history_v1',
+      STORAGE_SETTINGS: 'roadlens_settings_v1',
+      CACHE_VERSION: 'roadlens-v3',
+    };
 
-      let selectedFiles = [];
+    // ============================================================================
+    // DOM References
+    // ============================================================================
+    const DOM = {
+      dropZone: document.getElementById('dropZone'),
+      fileInput: document.getElementById('fileInput'),
+      fileList: document.getElementById('fileList'),
+      fileNames: document.getElementById('fileNames'),
+      analyzeBtn: document.getElementById('analyzeBtn'),
+      analyzeBtnText: document.getElementById('analyzeBtnText'),
+      resultContent: document.getElementById('resultContent'),
+      resultActions: document.getElementById('resultActions'),
+      downloadTxt: document.getElementById('downloadTxt'),
+      downloadJson: document.getElementById('downloadJson'),
+      tabs: document.querySelectorAll('.tab'),
+      tabContents: document.querySelectorAll('.tab-content'),
+      historyContent: document.getElementById('historyContent'),
+      clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+      calcList: document.getElementById('calcList'),
+      calcItems: document.getElementById('calcItems'),
+      calcTotal: document.getElementById('calcTotal'),
+      addCalcBtn: document.getElementById('addCalcBtn'),
+      violationType: document.getElementById('violationType'),
+      fineAmount: document.getElementById('fineAmount'),
+      swStatus: document.getElementById('swStatus'),
+      storageStatus: document.getElementById('storageStatus'),
+    };
 
-      // Tab navigation
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          tabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          const target = tab.dataset.scroll;
-          Object.keys(panels).forEach(key => {
-            panels[key].style.display = key === target ? 'block' : 'none';
-          });
+    // ============================================================================
+    // State Management
+    // ============================================================================
+    let state = {
+      selectedFiles: [],
+      lastResult: null,
+      calcItems: [],
+    };
+
+    // ============================================================================
+    // Utility Functions
+    // ============================================================================
+    function formatDate(date = new Date()) {
+      return date.toLocaleString('zh-Hant', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    }
+
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('zh-Hant', {
+        style: 'currency',
+        currency: 'TWD',
+        minimumFractionDigits: 0,
+      }).format(num);
+    }
+
+    function isLocalStorageAvailable() {
+      try {
+        const test = '__storage_test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function showAlert(message, type = 'info') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.innerHTML = `
+        <div class="alert-icon">${type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️'}</div>
+        <div class="alert-content">
+          <div class="alert-text">${message}</div>
+        </div>
+      `;
+      DOM.resultContent.parentElement.insertBefore(alertDiv, DOM.resultContent);
+      setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    // ============================================================================
+    // Tab Navigation
+    // ============================================================================
+    DOM.tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        
+        // Update active tab
+        DOM.tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
         });
-      });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
 
-      // File drop zone
-      drop.addEventListener('dragover', e => {
+        // Update active content
+        DOM.tabContents.forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(tabName).classList.add('active');
+      });
+    });
+
+    // ============================================================================
+    // File Upload Handling
+    // ============================================================================
+    function setupFileUpload() {
+      DOM.dropZone.addEventListener('click', () => DOM.fileInput.click());
+      
+      DOM.dropZone.addEventListener('dragover', e => {
         e.preventDefault();
-        drop.classList.add('drag');
+        DOM.dropZone.classList.add('drag-active');
       });
 
-      drop.addEventListener('dragleave', () => {
-        drop.classList.remove('drag');
+      DOM.dropZone.addEventListener('dragleave', () => {
+        DOM.dropZone.classList.remove('drag-active');
       });
 
-      drop.addEventListener('drop', e => {
+      DOM.dropZone.addEventListener('drop', e => {
         e.preventDefault();
-        drop.classList.remove('drag');
-        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-        if (files.length) {
-          selectedFiles = files;
-          analyze.disabled = false;
-          updatePreview();
-        }
+        DOM.dropZone.classList.remove('drag-active');
+        handleFiles(e.dataTransfer.files);
       });
 
-      drop.addEventListener('click', () => {
-        input.click();
+      DOM.fileInput.addEventListener('change', e => {
+        handleFiles(e.target.files);
       });
+    }
 
-      input.addEventListener('change', e => {
-        selectedFiles = Array.from(e.target.files);
-        if (selectedFiles.length) {
-          analyze.disabled = false;
-          updatePreview();
-        }
-      });
+    function handleFiles(files) {
+      const validFiles = Array.from(files)
+        .filter(f => f.type.startsWith('image/'))
+        .slice(0, CONFIG.MAX_FILES);
 
-      function updatePreview() {
-        const file = selectedFiles[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-          reportContent.innerHTML = `
-            <img src="${e.target.result}" alt="預覽" style="max-width:100%;border-radius:8px;margin-bottom:16px;">
-            <p>已選擇 ${selectedFiles.length} 張照片</p>
-          `;
-        };
-        reader.readAsDataURL(file);
+      if (validFiles.length === 0) {
+        showAlert('請選擇有效的圖片檔案', 'error');
+        return;
       }
 
-      analyze.addEventListener('click', async () => {
-        if (!selectedFiles.length) return;
-        analyze.disabled = true;
-        analyze.textContent = '分析中…';
-        reportContent.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>AI 正在分析照片…</p></div>';
+      if (validFiles.some(f => f.size > CONFIG.MAX_FILE_SIZE)) {
+        showAlert('某些檔案超過 10 MB 的大小限制', 'error');
+        return;
+      }
 
-        try {
-          const images = await Promise.all(
-            selectedFiles.map(f => {
-              return new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.readAsDataURL(f);
-              });
-            })
-          );
+      state.selectedFiles = validFiles;
+      updateFileList();
+      DOM.analyzeBtn.disabled = false;
+    }
 
-          const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              images,
-              mimeTypes: selectedFiles.map(f => f.type),
-            }),
-          });
+    function updateFileList() {
+      if (state.selectedFiles.length === 0) {
+        DOM.fileList.style.display = 'none';
+        return;
+      }
 
-          const result = await response.json();
+      DOM.fileList.style.display = 'block';
+      DOM.fileNames.innerHTML = state.selectedFiles
+        .map((f, i) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #f6f9fc; border-radius: 6px; font-size: 13px;">
+            <span>${f.name}</span>
+            <span style="color: var(--muted);">${(f.size / 1024 / 1024).toFixed(1)} MB</span>
+          </div>
+        `)
+        .join('');
+    }
 
-          if (!response.ok) {
-            throw new Error(result.error || '分析失敗');
-          }
+    // ============================================================================
+    // Image Analysis
+    // ============================================================================
+    async function analyzeImages() {
+      if (state.selectedFiles.length === 0) return;
 
-          displayResult(result);
-          saveToHistory(result);
-        } catch (err) {
-          reportContent.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${err.message}</p></div>`;
-        } finally {
-          analyze.disabled = false;
-          analyze.textContent = '開始分析';
+      DOM.analyzeBtn.disabled = true;
+      DOM.analyzeBtnText.textContent = '分析中…';
+
+      try {
+        DOM.resultContent.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px;">
+            <div class="loader" style="margin: 0 auto 16px;"></div>
+            <p style="color: var(--muted);">AI 正在分析照片，請稍候…</p>
+          </div>
+        `;
+
+        const images = await Promise.all(
+          state.selectedFiles.map(f => readFileAsDataURL(f))
+        );
+
+        const response = await fetch(CONFIG.API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            images,
+            mimeTypes: state.selectedFiles.map(f => f.type),
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || `HTTP ${response.status}`);
         }
+
+        const result = await response.json();
+        state.lastResult = result;
+
+        displayResult(result);
+        saveToHistory(result);
+        DOM.resultActions.style.display = 'flex';
+      } catch (err) {
+        showAlert(`分析失敗: ${err.message}`, 'error');
+        DOM.resultContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-title">分析失敗</div>
+            <p>${err.message}</p>
+          </div>
+        `;
+      } finally {
+        DOM.analyzeBtn.disabled = false;
+        DOM.analyzeBtnText.textContent = '重新分析';
+      }
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function displayResult(result) {
+      if (!result.violations || result.violations.length === 0) {
+        DOM.resultContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">分析完成</div>
+            <p>${result.summary || '未偵測到明顯的交通違規'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `
+        <div class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <div class="alert-title">分析完成</div>
+            <div class="alert-text">${result.summary || '已識別出以下違規項目'}</div>
+          </div>
+        </div>
+      `;
+
+      result.violations.forEach((v, i) => {
+        const isHighConfidence = v.confidence >= 70;
+        const isLowConfidence = v.confidence < 50;
+
+        html += `
+          <div class="violation-card">
+            <div class="violation-header">
+              <div class="violation-type">
+                ${i + 1}. ${v.violation}
+              </div>
+              <div class="confidence-badge ${isHighConfidence ? 'high' : isLowConfidence ? 'low' : ''}">
+                🎯 信心 ${v.confidence}%
+              </div>
+            </div>
+
+            <div class="violation-detail">
+              <strong>📸 證據</strong>
+              ${v.evidence}
+            </div>
+
+            <div class="violation-detail">
+              <strong>💭 理由</strong>
+              ${v.reason}
+            </div>
+
+            ${v.evidence_location ? `
+              <div class="violation-detail">
+                <strong>📍 位置</strong>
+                ${v.evidence_location}
+              </div>
+            ` : ''}
+
+            ${v.fine_min !== null && v.fine_max !== null ? `
+              <div class="violation-detail" style="background: #f6f9fc; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                <strong>💰 預估罰款</strong>
+                ${formatCurrency(v.fine_min)} ~ ${formatCurrency(v.fine_max)}
+              </div>
+            ` : ''}
+
+            ${v.uncertain ? `
+              <div style="margin-top: 10px; padding: 8px; background: #fff8e8; border-left: 2px solid var(--amber); color: #795a25; font-size: 13px;">
+                ⚠️ 證據不完整，建議補充拍攝
+              </div>
+            ` : ''}
+          </div>
+        `;
       });
 
-      function displayResult(result) {
-        if (!result.violations || result.violations.length === 0) {
-          reportContent.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>未偵測到違規</p></div>';
+      DOM.resultContent.innerHTML = html;
+    }
+
+    // ============================================================================
+    // History Management
+    // ============================================================================
+    function saveToHistory(result) {
+      if (!isLocalStorageAvailable()) return;
+
+      try {
+        const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_HISTORY) || '[]');
+        
+        history.unshift({
+          id: Date.now(),
+          date: formatDate(),
+          summary: result.summary,
+          violations: result.violations.map(v => ({
+            type: v.violation,
+            confidence: v.confidence,
+            fine_min: v.fine_min,
+            fine_max: v.fine_max,
+          })),
+          estimated_min: result.estimated_fine_min,
+          estimated_max: result.estimated_fine_max,
+        });
+
+        localStorage.setItem(CONFIG.STORAGE_HISTORY, JSON.stringify(history.slice(0, 30)));
+        loadHistory();
+      } catch (err) {
+        console.error('Failed to save history:', err);
+      }
+    }
+
+    function loadHistory() {
+      if (!isLocalStorageAvailable()) {
+        DOM.storageStatus.textContent = '❌ 不可用';
+        DOM.storageStatus.style.color = 'var(--red)';
+        return;
+      }
+
+      try {
+        const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_HISTORY) || '[]');
+
+        if (history.length === 0) {
+          DOM.historyContent.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">尚無分析紀錄</div>
+              <p>分析照片後會保存紀錄在這裡</p>
+            </div>
+          `;
           return;
         }
 
-        let html = `<h3>${result.summary}</h3>`;
-        result.violations.forEach(v => {
-          html += `
-            <div class="violation">
-              <div class="violation-top">
-                <div class="violation-type">${v.violation}</div>
-                <div class="confidence">信心 ${v.confidence}%</div>
-              </div>
-              <p><strong>證據：</strong>${v.evidence}</p>
-              <p><strong>理由：</strong>${v.reason}</p>
-              ${v.fine_min && v.fine_max ? `<p><strong>預估罰款：</strong>$${v.fine_min} - $${v.fine_max}</p>` : ''}
+        DOM.historyContent.innerHTML = history.map(item => `
+          <div class="history-item">
+            <div class="history-item-content">
+              <div class="history-item-date">${item.date}</div>
+              <div class="history-item-summary">${item.summary || `${item.violations.length} 項違規`}</div>
             </div>
-          `;
-        });
-        reportContent.innerHTML = html;
+            <div class="history-item-meta">
+              ${item.violations.length} 項<br>
+              ${item.estimated_max ? formatCurrency(item.estimated_max) : '無法計算'}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load history:', err);
+      }
+    }
+
+    // ============================================================================
+    // Calculator
+    // ============================================================================
+    function setupCalculator() {
+      DOM.addCalcBtn.addEventListener('click', () => {
+        const type = DOM.violationType.value.trim();
+        const amount = parseFloat(DOM.fineAmount.value) || 0;
+
+        if (!type || amount <= 0) {
+          showAlert('請輸入有效的違規類型和罰款金額', 'warning');
+          return;
+        }
+
+        state.calcItems.push({ id: Date.now(), type, amount });
+        DOM.violationType.value = '';
+        DOM.fineAmount.value = '';
+        updateCalculator();
+      });
+    }
+
+    function updateCalculator() {
+      if (state.calcItems.length === 0) {
+        DOM.calcList.style.display = 'none';
+        return;
       }
 
-      function saveToHistory(result) {
-        try {
-          const history = JSON.parse(localStorage.getItem('roadlens-history') || '[]');
-          history.unshift({
-            date: new Date().toLocaleString('zh-Hant'),
-            summary: result.summary,
-            violations: result.violations.length,
-            estimated: result.estimated_fine_max,
-          });
-          localStorage.setItem('roadlens-history', JSON.stringify(history.slice(0, 50)));
-          loadHistory();
-        } catch (_) {}
-      }
+      DOM.calcList.style.display = 'block';
 
-      function loadHistory() {
-        try {
-          const history = JSON.parse(localStorage.getItem('roadlens-history') || '[]');
-          if (history.length === 0) {
-            historyList.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>尚無分析紀錄</p></div>';
-            return;
+      DOM.calcItems.innerHTML = state.calcItems.map(item => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px;">
+          <div>
+            <div style="font-weight: 600; color: var(--ink);">${item.type}</div>
+            <div style="font-size: 12px; color: var(--muted);">${formatCurrency(item.amount)}</div>
+          </div>
+          <button class="btn btn-danger btn-small" onclick="removeCalcItem(${item.id})">删除</button>
+        </div>
+      `).join('');
+
+      const total = state.calcItems.reduce((sum, item) => sum + item.amount, 0);
+      DOM.calcTotal.textContent = total.toLocaleString('zh-Hant');
+    }
+
+    window.removeCalcItem = function(id) {
+      state.calcItems = state.calcItems.filter(item => item.id !== id);
+      updateCalculator();
+    };
+
+    // ============================================================================
+    // Download Functionality
+    // ============================================================================
+    function setupDownload() {
+      DOM.downloadTxt.addEventListener('click', () => {
+        if (!state.lastResult) return;
+
+        let text = 'RoadLens AI - 違規分析報告\n';
+        text += '=' .repeat(50) + '\n\n';
+        text += `日期: ${formatDate()}\n`;
+        text += `摘要: ${state.lastResult.summary}\n\n`;
+
+        state.lastResult.violations.forEach((v, i) => {
+          text += `${i + 1}. ${v.violation}\n`;
+          text += `   信心度: ${v.confidence}%\n`;
+          text += `   證據: ${v.evidence}\n`;
+          text += `   理由: ${v.reason}\n`;
+          if (v.fine_min && v.fine_max) {
+            text += `   預估罰款: ${formatCurrency(v.fine_min)} ~ ${formatCurrency(v.fine_max)}\n`;
           }
-          historyList.innerHTML = history.map(h => `
-            <div class="history-item">
-              <div>
-                <strong>${h.date}</strong>
-                <p style="margin:4px 0 0;color:var(--muted);font-size:12px;">${h.summary}</p>
-              </div>
-              <span>${h.violations} 項違規</span>
-            </div>
-          `).join('');
-        } catch (_) {}
+          text += '\n';
+        });
+
+        downloadFile(text, 'roadlens-report.txt', 'text/plain');
+      });
+
+      DOM.downloadJson.addEventListener('click', () => {
+        if (!state.lastResult) return;
+        const json = JSON.stringify(state.lastResult, null, 2);
+        downloadFile(json, 'roadlens-report.json', 'application/json');
+      });
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================================
+    // Service Worker Registration
+    // ============================================================================
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        DOM.swStatus.textContent = '❌ 不支援';
+        DOM.swStatus.style.color = 'var(--red)';
+        return;
       }
 
-      $('clearHistory').addEventListener('click', () => {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        DOM.swStatus.textContent = '✓ 已啟用';
+        DOM.swStatus.style.color = 'var(--green)';
+
+        // Auto-update
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+
+        reg.addEventListener('updatefound', () => {
+          if (reg.installing) {
+            reg.installing.addEventListener('statechange', () => {
+              if (reg.installing.state === 'installed' && navigator.serviceWorker.controller) {
+                reg.installing.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          }
+        });
+      } catch (err) {
+        console.warn('SW registration failed:', err);
+        DOM.swStatus.textContent = '⚠️ 失敗';
+        DOM.swStatus.style.color = 'var(--amber)';
+      }
+    }
+
+    // ============================================================================
+    // Initialization
+    // ============================================================================
+    function init() {
+      setupFileUpload();
+      setupCalculator();
+      setupDownload();
+
+      DOM.analyzeBtn.addEventListener('click', analyzeImages);
+      DOM.clearHistoryBtn.addEventListener('click', () => {
         if (confirm('確定要清除所有歷史紀錄嗎？')) {
-          localStorage.removeItem('roadlens-history');
+          localStorage.removeItem(CONFIG.STORAGE_HISTORY);
           loadHistory();
+          showAlert('歷史紀錄已清除', 'success');
         }
       });
 
       loadHistory();
-    })();
-  </script>
+      registerServiceWorker();
+    }
 
-  <!-- Auto-swap service worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      try {
-        navigator.serviceWorker.register('/sw.js').then(function (reg) {
-          if (reg.waiting) {
-            try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
-          }
-          reg.addEventListener('updatefound', function () {
-            var newWorker = reg.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', function () {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  try { newWorker.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
-                }
-              });
-            }
-          });
-        }).catch(function () {});
-      } catch (_) {}
-      navigator.serviceWorker.addEventListener('controllerchange', function () {
-        try { window.location.reload(); } catch (_) {}
-      });
+    // Auto-init when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
   </script>
 
-  <script src="./upload-fix.js"></script>
+  <!-- Service Worker Auto-reload Script -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('Service Worker updated, reloading...');
+        window.location.reload();
+      });
+    }
+  </script>
 </body>
 </html>
