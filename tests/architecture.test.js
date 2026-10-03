@@ -25,7 +25,9 @@ test('schema accepts uncertain and multi-vehicle-safe results', () => {
   assert.equal(result.value.violations[0].uncertain, true);
   assert.equal(result.value.violations[0].vehicleId, 'Vehicle 2');
 });
-test('schema rejects malformed model results', () => {
+test('schema accepts empty violation items', () => {
   assert.equal(validateModelResult({ violations: [{}] }).ok, true);
+});
+test('schema rejects malformed model results without violations array', () => {
   assert.equal(validateModelResult({ summary: 'missing list' }).ok, false);
 });
