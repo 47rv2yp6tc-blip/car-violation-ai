@@ -1,10 +1,29 @@
 const STATUS = new Set(['confirmed', 'excluded', 'unknown', 'pending']);
 
 export function validateModelResult(value) {
-  if (!value || typeof value !== 'object' || !Array.isArray(value.violations)) {
-    return { ok: false, reason: 'missing_violations' };
+  if (!value || typeof value !== 'object') {
+    return { ok: false, reason: 'missing_result' };
   }
-  const violations = value.violations.map((item) => {
+
+  const violations = Array.isArray(value.violations) ? value.violations : [];
+
+  if (violations.length === 0) {
+    return {
+      ok: true,
+      value: {
+        quality: value.quality && typeof value.quality === 'object'
+          ? value.quality
+          : { usable: false, issues: ['模型未提供照片品質'] },
+        observed_facts: Array.isArray(value.observed_facts)
+          ? value.observed_facts.map(String).slice(0, 30)
+          : [],
+        violations: [],
+        summary: String(value.summary || '無法從此照片確認，請提供更完整影像。'),
+      },
+    };
+  }
+
+  const normalizedViolations = violations.map((item) => {
     if (!item || typeof item !== 'object') return null;
     const confidence = Number(item.confidence);
     return {
@@ -15,17 +34,27 @@ export function validateModelResult(value) {
       reason: String(item.reason || '未提供'),
       additionalInformation: Array.isArray(item.additionalInformation)
         ? item.additionalInformation.map(String).slice(0, 10)
-        : Array.isArray(item.missing_evidence) ? item.missing_evidence.map(String).slice(0, 10) : [],
+        : Array.isArray(item.missing_evidence)
+          ? item.missing_evidence.map(String).slice(0, 10)
+          : [],
       vehicleId: String(item.vehicleId || item.vehicle || ''),
     };
   });
-  if (violations.some((item) => !item)) return { ok: false, reason: 'invalid_violation' };
+
+  if (normalizedViolations.some((item) => !item)) {
+    return { ok: false, reason: 'invalid_violation' };
+  }
+
   return {
     ok: true,
     value: {
-      quality: value.quality && typeof value.quality === 'object' ? value.quality : { usable: false, issues: ['模型未提供照片品質'] },
-      observed_facts: Array.isArray(value.observed_facts) ? value.observed_facts.map(String).slice(0, 30) : [],
-      violations,
+      quality: value.quality && typeof value.quality === 'object'
+        ? value.quality
+        : { usable: false, issues: ['模型未提供照片品質'] },
+      observed_facts: Array.isArray(value.observed_facts)
+        ? value.observed_facts.map(String).slice(0, 30)
+        : [],
+      violations: normalizedViolations,
       summary: String(value.summary || '未提供'),
     },
   };
