@@ -6,7 +6,11 @@ const normalize = (value) => String(value || '').trim().toLocaleLowerCase();
 
 export function normalizeLocation(value) {
   if (!value || typeof value !== 'object') return null;
-  const country = countries.find((item) => item.countryCode === String(value.countryCode || '').toUpperCase() || normalize(item.countryName) === normalize(value.countryName) || normalize(item.localizedName) === normalize(value.countryName));
+  const country = countries.find((item) => 
+    item.countryCode === String(value.countryCode || '').toUpperCase() || 
+    normalize(item.countryName) === normalize(value.countryName) || 
+    normalize(item.localName) === normalize(value.localName)
+  );
   return {
     countryCode: country?.countryCode || null,
     countryName: country?.countryName || null,
