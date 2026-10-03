@@ -1,270 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1769e0"><meta name="description" content="RoadLens AI 汽車違規影像辨識與罰鍰預估學習原型。">
+<style>
+:root{--ink:#10233f;--muted:#65758b;--line:#dce5ed;--bg:#f6f9fc;--card:#fff;--blue:#1769e0;--red:#c7444d;--amber:#a66300;--shadow:0 8px 26px #203e5c0d}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter, "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif}
+</style></head>
+<body><main class="shell">
+<header><div class="brand"><span class="mark">⌁</span>RoadLens AI</div><span class="badge">Gemini Vision · 證據優先分析</span></header>
+<section class="hero"><div><p class="eyebrow">SMART TRAFFIC ANALYSIS</p><h1>讓照片替你<br><span>看懂交通違規</span></h1><p class="lead">AI 先整理照片中實際看得到的事實，並提供依據與罰鍰預估（僅供參考）。</p></div></section>
+<nav class="tabs" aria-label="工具導覽"><button class="tab" data-scroll="history">歷史紀錄</button><button class="tab" data-scroll="calculator">罰款計算器</button><button class="tab" data-scroll="dashboard">Dashboard</button><button class="tab" data-scroll="settings">設定</button><button class="tab" id="theme">切換主題</button></nav>
+<section id="workspace" class="workspace"><div class="panel"><h2>照片分析</h2><p class="sub">支援 JPG、PNG、WEBP；可加入最多 6 張同一事件照片，每張最多 10 MB。</p><div id="drop" class="drop"><input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple><input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none"><div id="dropText"><strong>拖曳照片到這裡，或選擇圖片</strong><p class="sub">建議同時拍到車輛、道路標線與相關交通標誌。</p></div><div id="previews" class="hidden"></div></div><div class="toolbar" style="margin-top:12px"><button id="choose" class="btn">選擇圖片</button><button id="clear" class="btn hidden">清除</button></div><button id="analyze" class="btn primary analyze" disabled>開始 AI 分析</button><p id="qualityHint" class="small sub" aria-live="polite"></p><p class="small sub">Gemini API Key 只在伺服器端使用。</p></div><div class="panel" id="results"><div class="empty"><strong>等待照片分析</strong><p>分析結果會顯示在這裡</p></div></div></section>
+<section class="panel" id="report"><div class="result-head"><div><h2>分析報告</h2><p class="sub">完成分析後可下載或分享</p></div><div class="toolbar"><button id="txt" class="btn" disabled>下載 TXT</button><button id="json" class="btn" disabled>下載 JSON</button><button id="share" class="btn" disabled>分享／複製</button></div></div><div id="reportText" class="summary">尚未產生報告。</div></section>
+<section class="panel" id="calculator"><h2>手動罰款計算器</h2><p class="sub">金額由你輸入；未查證資料不會被當成法律事實。</p><div id="calcOptions" class="history-list"></div><div class="total"><span>預估總額</span><strong id="calcTotal">NT$ 0</strong></div></section>
+<section class="panel" id="history"><div class="result-head"><div><h2>歷史紀錄</h2><p class="sub">保存日期、違規、信心與預估金額；不保存原圖。</p></div><button id="clearHistory" class="btn">清除歷史</button><div id="historyList" class="history-list"></div></section>
+<section class="panel" id="dashboard"><h2>統計 Dashboard</h2><p class="sub">所有數據來自實際本機紀錄。</p><div id="statsPanel" class="history-list"></div></section>
+<section class="panel" id="settings"><h2>設定與 API 狀態</h2><div class="history-list"><div class="history-item"><span>AI 模式</span><strong id="apiMode">Live Vision AI</strong></div></div></section>
+<div class="notice"><b>重要提醒：</b>即使模型信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。</div>
+<script>
+(function(){'use strict';const $=id=>document.getElementById(id),input=$('photoInput'),cameraInput=$('cameraInput'),drop=$('drop'),previews=$('previews'),analyze=$('analyze'),results=$('results');function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]});}function msg(t,e){results.innerHTML='<div class="'+(e?'error':'summary')+'">'+esc(t)+'</div>'}function read(f){return new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(x.result);x.onerror=()=>j(new Error('read'));x.readAsDataURL(f);});}function clearAll(){/* minimal placeholder */}if(input)input.addEventListener('change',e=>{/* placeholder */});})();
+</script>
 
-(function () {
-  'use strict';
-  const LAST_ANALYSIS_KEY = 'roadlens-latest-analysis-v1';
-  const LAST_IMAGES_KEY = 'roadlens-last-images-v1';
-  const HUMAN_REVIEW_KEY = 'roadlens-human-review-v1';
-  const GB = window;
-
-  function readJSON(key, fallback) {
-    try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v == null ? fallback : v; }
-    catch (_) { return fallback; }
-  }
-  function saveJSON(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
-  }
-
-  function showFinalResult(analysis) {
-    const results = document.getElementById('results');
-    if (!results) return;
-    const reviewState = readJSON(HUMAN_REVIEW_KEY, {});
-    const decisions = Array.isArray(analysis.violations) ? analysis.violations.map(function (violation, index) {
-      const itemIds = Array.isArray(violation.missing_evidence) && violation.missing_evidence.length ? violation.missing_evidence.map(function (_, itemIndex) { return String(index) + '-' + String(itemIndex); }) : [];
-      if (!itemIds.length) {
-        return { index: index, violation: violation, final: 'ai-only', ai: { type: violation.violation_type || violation.type || '疑似違規', confidence: violation.confidence }, user: null };
+<!-- Auto-swap service worker: request skipWaiting on waiting worker and reload on controllerchange -->
+<script>
+if ('serviceWorker' in navigator) {
+  try {
+    navigator.serviceWorker.register('/sw.js').then(function (reg) {
+      if (reg.waiting) {
+        try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
       }
-      const states = itemIds.map(function (id) { return reviewState[id] || null; });
-      if (states.some(function (state) { return state === 'not-applicable'; })) {
-        return { index: index, violation: violation, final: 'excluded', ai: { type: violation.violation_type || violation.type || '疑似違規', confidence: violation.confidence }, user: states };
-      }
-      if (states.every(function (state) { return state === 'confirmed'; })) {
-        return { index: index, violation: violation, final: 'confirmed', ai: { type: violation.violation_type || violation.type || '疑似違規', confidence: violation.confidence }, user: states };
-      }
-      return { index: index, violation: violation, final: 'unknown', ai: { type: violation.violation_type || violation.type || '疑似違規', confidence: violation.confidence }, user: states };
-    }) : [];
-
-    const confirmed = decisions.filter(function (d) { return d.final === 'confirmed'; }).length;
-    const excluded = decisions.filter(function (d) { return d.final === 'excluded'; }).length;
-    const unknown = decisions.filter(function (d) { return d.final === 'unknown'; }).length;
-    const aiOnly = decisions.filter(function (d) { return d.final === 'ai-only'; }).length;
-
-    let fineMin = 0;
-    let fineMax = 0;
-    decisions.forEach(function (d) {
-      if (d.final === 'confirmed') {
-        fineMin += Number(d.violation.fine_min || 0);
-        fineMax += Number(d.violation.fine_max || 0);
-      }
-    });
-
-    const images = readJSON(LAST_IMAGES_KEY, []);
-    const imgMarkup = Array.isArray(images) && images.length ? images.map(function (src, idx) {
-      return '<img class="final-preview-image" alt="分析圖片 ' + (idx + 1) + '" src="' + src + '" />';
-    }).join('') : '<div class="summary-card">未找到原始圖片</div>';
-
-    const rows = decisions.map(function (d) {
-      const v = d.violation;
-      const aiType = d.ai.type || '疑似違規';
-      const aiConfidence = d.ai.confidence == null ? '未提供' : String(d.ai.confidence) + '%';
-      const userText = d.user ? (d.final === 'confirmed' ? '確認違規' : d.final === 'excluded' ? '不符合' : '無法判斷') : '—';
-      const finalLabel = d.final === 'confirmed' ? '確認違規' : d.final === 'excluded' ? '排除' : d.final === 'unknown' ? '無法確定' : 'AI 判定';
-      const fineText = d.final === 'confirmed' ? ((Number(v.fine_min) || Number(v.fine_max) ? (Number(v.fine_min) === Number(v.fine_max) ? 'NT$ ' + Number(v.fine_min).toLocaleString() : 'NT$ ' + Number(v.fine_min).toLocaleString() + ' ～ ' + Number(v.fine_max).toLocaleString()) : '需查證')) : '—';
-      const evidence = Array.isArray(v.evidence) ? v.evidence.join('；') : (v.evidence || v.reason || '未提供');
-      return '<div class="violation-row"><div class="violation-row-head"><strong>' + (v.violation_type || v.type || '違規項目') + '</strong><span>' + finalLabel + '</span></div><div class="meta-line">AI 判定：' + aiType + '</div><div class="meta-line">AI 信心度：' + aiConfidence + '</div><div class="meta-line">圖片證據：' + evidence + '</div><div class="meta-line">人工確認：' + userText + '</div><div class="meta-line">最終判定：' + finalLabel + '</div><div class="meta-line">預估罰款：' + fineText + '</div></div>';
-    }).join('');
-
-    const fineText = fineMin || fineMax ? (fineMin === fineMax ? 'NT$ ' + fineMin.toLocaleString() : 'NT$ ' + fineMin.toLocaleString() + ' ～ ' + fineMax.toLocaleString()) : '需查證';
-
-    const html = [
-      '<div class="final-result-panel">',
-      '  <div class="final-result-layout">',
-      '    <div class="final-result-left">',
-      '      <h3>原始圖片</h3>',
-      '      <div class="final-image-grid">' + imgMarkup + '</div>',
-      '    </div>',
-      '    <div class="final-result-right">',
-      '      <div class="result-heading">',
-      '        <h3>分析完成</h3>',
-      '        <span class="pill pill-blue">AI 分析結果</span>',
-      '      </div>',
-      '      <div class="final-result-summary">',
-      '        <h4>最終判定</h4>',
-      '        <div class="summary-grid">',
-      '          <div class="summary-card"><span>確認違規</span><strong>' + confirmed + '</strong></div>',
-      '          <div class="summary-card"><span>排除</span><strong>' + excluded + '</strong></div>',
-      '          <div class="summary-card"><span>無法確定</span><strong>' + unknown + '</strong></div>',
-      '          <div class="summary-card"><span>AI 判定違規</span><strong>' + (aiOnly + confirmed) + '</strong></div>',
-      '        </div>',
-      '        <div class="summary-card meta-card"><span>預估罰款</span><strong>' + fineText + '</strong></div>',
-      '      </div>',
-      '      <div class="final-violations">',
-      '        <h4>違規項目</h4>',
-      rows,
-      '      </div>',
-      '      <div class="final-actions">',
-      '        <button class="btn secondary" id="roadlensReAnalyze">重新分析</button>',
-      '        <button class="btn secondary" id="roadlensReReview">重新人工確認</button>',
-      '        <button class="btn primary" id="roadlensBackHome">返回首頁</button>',
-      '      </div>',
-      '    </div>',
-      '  </div>',
-      '</div>'
-    ].join('');
-
-    results.innerHTML = html;
-
-    results.querySelector('#roadlensReAnalyze')?.addEventListener('click', function () {
-      localStorage.removeItem(LAST_ANALYSIS_KEY);
-      results.innerHTML = '<div class="empty"><div class="empty-icon">✦</div><strong>等待照片分析</strong><p>分析結果會顯示在這裡</p></div>';
-      const analyzeButton = document.getElementById('analyze');
-      if (analyzeButton) analyzeButton.disabled = false;
-    });
-
-    results.querySelector('#roadlensReReview')?.addEventListener('click', function () {
-      const reviewPanel = document.getElementById('humanReviewPanel');
-      if (reviewPanel) reviewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      showReviewUI(analysis);
-    });
-
-    results.querySelector('#roadlensBackHome')?.addEventListener('click', function () {
-      window.location.reload();
-    });
-
-    const style = document.getElementById('roadlens-final-style');
-    if (!style) {
-      const s = document.createElement('style');
-      s.id = 'roadlens-final-style';
-      s.textContent = [
-        '.final-result-panel{margin-top:18px;padding:0;background:transparent}',
-        '.final-result-layout{display:flex;gap:22px;align-items:flex-start}',
-        '.final-result-left,.final-result-right{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 8px 26px #203e5c0d}',
-        '.final-result-left{flex:0 0 38%}',
-        '.final-result-right{flex:1}',
-        '.final-image-grid{display:grid;gap:12px}',
-        '.final-preview-image{display:block;width:100%;height:auto;border-radius:10px;object-fit:contain;max-height:520px;cursor:zoom-in;background:#f7fafc}',
-        '.result-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}',
-        '.pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}',
-        '.pill-blue{background:#eaf2ff;color:var(--blue)}',
-        '.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}',
-        '.summary-card{padding:12px;border:1px solid var(--line);border-radius:12px;background:#f8fafe}',
-        '.summary-card span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}',
-        '.summary-card strong{font-size:22px}',
-        '.meta-card{margin-top:6px}',
-        '.violation-row{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}',
-        '.violation-row-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}',
-        '.meta-line{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}',
-        '.final-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}',
-        '@media (max-width: 760px){.final-result-layout{display:block}.final-result-left,.final-result-right{padding:14px}.summary-grid{grid-template-columns:1fr 1fr}.final-actions{display:grid;grid-template-columns:1fr}.final-actions .btn{width:100%;min-height:46px}}'
-      ].join('');
-      document.head.appendChild(s);
-    }
-  }
-
-  function showReviewUI(analysis) {
-    const results = document.getElementById('results');
-    if (!results) return;
-    const reviewState = readJSON(HUMAN_REVIEW_KEY, {});
-    const items = Array.isArray(analysis.violations) ? analysis.violations : [];
-    if (!items.length) {
-      showFinalResult(analysis);
-      return;
-    }
-    const humanReview = document.getElementById('humanReviewPanel');
-    if (humanReview) humanReview.remove();
-    const panel = document.createElement('section');
-    panel.id = 'humanReviewPanel';
-    panel.className = 'panel';
-    panel.innerHTML = '<div class="result-head"><div><h3>需要人工確認</h3><p class="sub">AI 判斷與人工確認分開保存，不會改變 AI 原始信心。</p></div></div>' + items.map(function (violation, index) {
-      const evidenceSet = Array.isArray(violation.missing_evidence) && violation.missing_evidence.length ? violation.missing_evidence : ['此判斷需要確認'];
-      return '<div class="review-group" data-review-group="' + index + '">' + evidenceSet.map(function (label, itemIndex) {
-        var key = String(index) + '-' + String(itemIndex);
-        var selected = reviewState[key] || '';
-        return '<div class="review-item"><div class="review-item-head"><strong>' + label + '</strong><span class="review-status">' + (selected ? (selected === 'confirmed' ? '已確認' : selected === 'not-applicable' ? '不符合' : '無法判斷') : '尚未確認') + '</span></div><div class="review-actions"><button class="review-choice ' + (selected === 'confirmed' ? 'selected' : '') + '" data-review-key="' + key + '" data-review-value="confirmed">確認</button><button class="review-choice ' + (selected === 'not-applicable' ? 'selected' : '') + '" data-review-key="' + key + '" data-review-value="not-applicable">不符合</button><button class="review-choice ' + (selected === 'unknown' ? 'selected' : '') + '" data-review-key="' + key + '" data-review-value="unknown">無法判斷</button></div></div>';
-      }).join('') + '</div>';
-    }).join('') + '<div class="human-actions"><button class="btn primary" id="completeHumanReview">完成人工確認</button><button class="btn secondary" id="resetHumanReview">重設人工確認</button><span id="humanReviewMessage" role="status"></span></div>';
-
-    results.appendChild(panel);
-
-    panel.querySelectorAll('.review-choice').forEach(function (button) {
-      button.addEventListener('click', function () {
-        const key = button.getAttribute('data-review-key');
-        const value = button.getAttribute('data-review-value');
-        const queue = readJSON(HUMAN_REVIEW_KEY, {});
-        queue[key] = value;
-        saveJSON(HUMAN_REVIEW_KEY, queue);
-        button.parentElement.parentElement.querySelector('.review-status').textContent = (value === 'confirmed' ? '已確認' : value === 'not-applicable' ? '不符合' : '無法判斷');
-        button.parentElement.querySelectorAll('.review-choice').forEach(function (opt) { opt.classList.toggle('selected', opt === button); });
+      reg.addEventListener('updatefound', function () {
+        var newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', function () {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              try { newWorker.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+            }
+          });
+        }
       });
-    });
+    }).catch(function () {});
+  } catch (_) {}
+  navigator.serviceWorker.addEventListener('controllerchange', function () { try { window.location.reload(); } catch (_) {} });
+}
+</script>
 
-    panel.querySelector('#completeHumanReview')?.addEventListener('click', function () {
-      const queue = readJSON(HUMAN_REVIEW_KEY, {});
-      const missing = Object.keys(queue).filter(function (k) {
-        return !queue[k];
-      }).length;
-      const msg = document.getElementById('humanReviewMessage');
-      if (missing > 0) {
-        msg.textContent = '尚有 ' + missing + ' 項需要確認';
-        msg.className = 'review-warning';
-        return;
-      }
-      queue.completed = true;
-      saveJSON(HUMAN_REVIEW_KEY, queue);
-      msg.textContent = '人工確認完成';
-      msg.className = 'review-success';
-      setTimeout(function () { showFinalResult(analysis); }, 180);
-    });
-
-    panel.querySelector('#resetHumanReview')?.addEventListener('click', function () {
-      localStorage.removeItem(HUMAN_REVIEW_KEY);
-      showReviewUI(analysis);
-    });
-
-    const style = document.getElementById('roadlens-review-style');
-    if (!style) {
-      const s = document.createElement('style');
-      s.id = 'roadlens-review-style';
-      s.textContent = [
-        '.review-group{padding:10px 0;border-top:1px solid var(--line)}',
-        '.review-item{padding:10px 0}',
-        '.review-item-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}',
-        '.review-status{font-size:12px;color:var(--muted)}',
-        '.review-actions{display:flex;gap:8px;flex-wrap:wrap}',
-        '.review-choice{min-width:90px;min-height:42px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700;color:var(--ink)}',
-        '.review-choice.selected{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,224,0.15)}',
-        '.human-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}',
-        '.review-success{color:#147d67;font-weight:700}',
-        '.review-warning{color:#a66300;font-weight:700}',
-        '@media (max-width: 760px){.review-actions{display:grid;grid-template-columns:repeat(3,1fr)}.review-choice{width:100%;min-width:0}}'
-      ].join('');
-      document.head.appendChild(s);
-    }
-  }
-
-  function handleAnalysisComplete(analysis) {
-    if (!analysis) return;
-    saveJSON(LAST_ANALYSIS_KEY, analysis);
-    const needsReview = Array.isArray(analysis.violations) && analysis.violations.some(function (v) {
-      return Array.isArray(v.missing_evidence) && v.missing_evidence.length > 0;
-    });
-    if (needsReview) {
-      showReviewUI(analysis);
-      return;
-    }
-    showFinalResult(analysis);
-  }
-
-  document.addEventListener('roadlens:analysis-complete', function (event) {
-    const detail = event && event.detail ? event.detail : {};
-    handleAnalysisComplete(detail.analysis || detail || null);
-  });
-
-  document.addEventListener('roadlens:human-review-updated', function (event) {
-    const detail = event && event.detail ? event.detail : {};
-    const analysis = readJSON(LAST_ANALYSIS_KEY, null);
-    if (detail.completed && analysis) {
-      showFinalResult(analysis);
-    }
-  });
-
-  window.addEventListener('load', function () {
-    const analysis = readJSON(LAST_ANALYSIS_KEY, null);
-    const reviewState = readJSON(HUMAN_REVIEW_KEY, null);
-    if (!analysis) return;
-    if (!Array.isArray(analysis.violations) || !analysis.violations.some(function (v) { return Array.isArray(v.missing_evidence) && v.missing_evidence.length > 0; })) {
-      showFinalResult(analysis);
-    } else if (reviewState && reviewState.completed) {
-      showFinalResult(analysis);
-    }
-  });
-})();
+<script src="./upload-fix.js"></script>
+</body></html>
