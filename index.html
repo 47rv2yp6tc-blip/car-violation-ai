@@ -271,6 +271,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       background: #fafbfc;
+      user-select: none;
     }
 
     .drop-zone:hover {
@@ -287,12 +288,44 @@
     .drop-icon {
       font-size: 42px;
       margin: 0 0 12px;
+      pointer-events: none;
     }
 
     .drop-text {
       color: var(--muted);
       font-size: 14px;
       margin: 8px 0 0;
+      pointer-events: none;
+    }
+
+    .upload-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .upload-btn {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      background: var(--blue);
+      color: white;
+      transition: all 0.2s ease;
+    }
+
+    .upload-btn:active {
+      transform: scale(0.98);
+    }
+
+    .upload-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .tabs {
@@ -644,6 +677,14 @@
         padding: 20px;
       }
 
+      .upload-buttons {
+        flex-direction: column;
+      }
+
+      .upload-btn {
+        min-width: auto;
+      }
+
       .tabs {
         gap: 4px;
       }
@@ -691,6 +732,12 @@
         min-height: 40px;
       }
 
+      .upload-btn {
+        padding: 10px 12px;
+        font-size: 13px;
+        min-height: 40px;
+      }
+
       .panel {
         padding: 14px;
         border-radius: 12px;
@@ -727,7 +774,8 @@
       .btn,
       .tabs,
       footer,
-      .result-actions {
+      .result-actions,
+      .upload-buttons {
         display: none;
       }
 
@@ -780,6 +828,10 @@
         color: var(--ink);
       }
 
+      .upload-btn {
+        background: var(--blue);
+      }
+
       .panel,
       .violation-card,
       .history-item {
@@ -824,7 +876,13 @@
             <div class="drop-text">可一次上傳多張同一事件的照片</div>
           </div>
 
-          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" multiple aria-hidden="true">
+          <div class="upload-buttons">
+            <button class="upload-btn" id="selectPhotosBtn">📱 選擇照片</button>
+            <button class="upload-btn" id="takePhotoBtn">📷 拍照</button>
+          </div>
+
+          <input type="file" id="fileInput" accept="image/*" multiple aria-hidden="true">
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" aria-hidden="true">
 
           <div id="fileList" style="margin-top: 16px; display: none;">
             <p style="font-size: 13px; color: var(--muted); margin: 0 0 8px;">已選擇的照片：</p>
@@ -965,7 +1023,7 @@
     // ============================================================================
     const CONFIG = {
       MAX_FILES: 6,
-      MAX_FILE_SIZE: 10 * 1024 * 1024, // 10 MB
+      MAX_FILE_SIZE: 10 * 1024 * 1024,
       API_ENDPOINT: '/api/analyze',
       STORAGE_HISTORY: 'roadlens_history_v1',
       STORAGE_SETTINGS: 'roadlens_settings_v1',
@@ -978,6 +1036,9 @@
     const DOM = {
       dropZone: document.getElementById('dropZone'),
       fileInput: document.getElementById('fileInput'),
+      cameraInput: document.getElementById('cameraInput'),
+      selectPhotosBtn: document.getElementById('selectPhotosBtn'),
+      takePhotoBtn: document.getElementById('takePhotoBtn'),
       fileList: document.getElementById('fileList'),
       fileNames: document.getElementById('fileNames'),
       analyzeBtn: document.getElementById('analyzeBtn'),
@@ -1062,7 +1123,6 @@
       tab.addEventListener('click', () => {
         const tabName = tab.dataset.tab;
         
-        // Update active tab
         DOM.tabs.forEach(t => {
           t.classList.remove('active');
           t.setAttribute('aria-selected', 'false');
@@ -1070,7 +1130,6 @@
         tab.classList.add('active');
         tab.setAttribute('aria-selected', 'true');
 
-        // Update active content
         DOM.tabContents.forEach(content => {
           content.classList.remove('active');
         });
@@ -1079,27 +1138,54 @@
     });
 
     // ============================================================================
-    // File Upload Handling
+    // File Upload Handling - FIX FOR MOBILE
     // ============================================================================
     function setupFileUpload() {
-      DOM.dropZone.addEventListener('click', () => DOM.fileInput.click());
+      // Select photos button
+      DOM.selectPhotosBtn.addEventListener('click', e => {
+        e.preventDefault();
+        DOM.fileInput.click();
+      });
+
+      // Take photo button
+      DOM.takePhotoBtn.addEventListener('click', e => {
+        e.preventDefault();
+        DOM.cameraInput.click();
+      });
+
+      // Drop zone click
+      DOM.dropZone.addEventListener('click', e => {
+        if (e.target === DOM.dropZone || e.target.closest('.drop-zone') === DOM.dropZone) {
+          DOM.fileInput.click();
+        }
+      });
       
+      // Drag and drop
       DOM.dropZone.addEventListener('dragover', e => {
         e.preventDefault();
+        e.stopPropagation();
         DOM.dropZone.classList.add('drag-active');
       });
 
-      DOM.dropZone.addEventListener('dragleave', () => {
+      DOM.dropZone.addEventListener('dragleave', e => {
+        e.preventDefault();
+        e.stopPropagation();
         DOM.dropZone.classList.remove('drag-active');
       });
 
       DOM.dropZone.addEventListener('drop', e => {
         e.preventDefault();
+        e.stopPropagation();
         DOM.dropZone.classList.remove('drag-active');
         handleFiles(e.dataTransfer.files);
       });
 
+      // File input changes
       DOM.fileInput.addEventListener('change', e => {
+        handleFiles(e.target.files);
+      });
+
+      DOM.cameraInput.addEventListener('change', e => {
         handleFiles(e.target.files);
       });
     }
@@ -1402,7 +1488,7 @@
         if (!state.lastResult) return;
 
         let text = 'RoadLens AI - 違規分析報告\n';
-        text += '=' .repeat(50) + '\n\n';
+        text += '='.repeat(50) + '\n\n';
         text += `日期: ${formatDate()}\n`;
         text += `摘要: ${state.lastResult.summary}\n\n`;
 
@@ -1454,7 +1540,6 @@
         DOM.swStatus.textContent = '✓ 已啟用';
         DOM.swStatus.style.color = 'var(--green)';
 
-        // Auto-update
         if (reg.waiting) {
           reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
@@ -1496,7 +1581,6 @@
       registerServiceWorker();
     }
 
-    // Auto-init when DOM is ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -1504,7 +1588,6 @@
     }
   </script>
 
-  <!-- Service Worker Auto-reload Script -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
