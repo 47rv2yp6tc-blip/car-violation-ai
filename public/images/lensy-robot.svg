@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 400 440"
+     fill="none"
+     role="img"
+     aria-labelledby="robot-title">
+
+  <title id="robot-title">RoadLens AI Robot</title>
+
+  <defs>
+    <linearGradient id="headGradient" x1="95" y1="75" x2="305" y2="250" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E8F8FC"/>
+    </linearGradient>
+
+    <linearGradient id="bodyGradient" x1="130" y1="255" x2="270" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E8F8FC"/>
+    </linearGradient>
+
+    <radialGradient id="eyeGradient" cx="0" cy="0" r="1" gradientTransform="translate(160 140) rotate(90) scale(18)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8BF4FF"/>
+      <stop offset="1" stop-color="#25C6DA"/>
+    </radialGradient>
+
+    <linearGradient id="cameraGradient" x1="185" y1="32" x2="215" y2="65" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#25C6DA"/>
+      <stop offset="1" stop-color="#142B4A"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="50" y="20" width="300" height="400" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#142B4A" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Ground shadow -->
+  <ellipse cx="200" cy="408" rx="66" ry="9" fill="#142B4A" opacity="0.10"/>
+
+  <g id="mascot">
+    <g filter="url(#softShadow)">
+
+      <!-- Camera mount -->
+      <path d="M188 76V61Q188 55 194 55H206Q212 55 212 61V76"
+            fill="#142B4A"/>
+
+      <!-- Camera lens -->
+      <circle cx="200" cy="48" r="22" fill="#142B4A"/>
+      <circle cx="200" cy="48" r="16" fill="url(#cameraGradient)"/>
+      <circle cx="195" cy="43" r="5" fill="#FFFFFF" opacity="0.95"/>
+      <circle cx="207" cy="53" r="2.5" fill="#FFFFFF" opacity="0.65"/>
+
+      <!-- Arms behind body -->
+      <path d="M133 279Q113 284 101 301"
+            stroke="#142B4A"
+            stroke-width="16"
+            stroke-linecap="round"/>
+
+      <path d="M267 279Q287 284 299 301"
+            stroke="#142B4A"
+            stroke-width="16"
+            stroke-linecap="round"/>
+
+      <!-- Hands -->
+      <circle cx="99" cy="304" r="12" fill="#25C6DA" stroke="#142B4A" stroke-width="4"/>
+      <circle cx="301" cy="304" r="12" fill="#25C6DA" stroke="#142B4A" stroke-width="4"/>
+
+      <!-- Legs -->
+      <path d="M166 350V378"
+            stroke="#142B4A"
+            stroke-width="15"
+            stroke-linecap="round"/>
+
+      <path d="M234 350V378"
+            stroke="#142B4A"
+            stroke-width="15"
+            stroke-linecap="round"/>
+
+      <!-- Feet -->
+      <path d="M145 381Q145 373 153 373H176Q184 373 184 382V387H145Z"
+            fill="#142B4A"/>
+
+      <path d="M216 382Q216 373 224 373H247Q255 373 255 381V387H216Z"
+            fill="#142B4A"/>
+
+      <!-- Head -->
+      <rect x="95" y="72" width="210" height="177" rx="48"
+            fill="url(#headGradient)"
+            stroke="#142B4A"
+            stroke-width="6"/>
+
+      <!-- Side details -->
+      <rect x="84" y="132" width="12" height="38" rx="6" fill="#25C6DA"/>
+      <rect x="304" y="132" width="12" height="38" rx="6" fill="#25C6DA"/>
+
+      <!-- Face panel -->
+      <rect x="115" y="103" width="170" height="110" rx="30"
+            fill="#142B4A"/>
+
+      <!-- Eyes -->
+      <ellipse cx="160" cy="143" rx="12" ry="15" fill="url(#eyeGradient)"/>
+      <ellipse cx="240" cy="143" rx="12" ry="15" fill="url(#eyeGradient)"/>
+
+      <!-- Eye highlights -->
+      <circle cx="164" cy="138" r="4" fill="#FFFFFF" opacity="0.95"/>
+      <circle cx="244" cy="138" r="4" fill="#FFFFFF" opacity="0.95"/>
+
+      <!-- Smile -->
+      <path d="M175 172Q200 194 225 172"
+            stroke="#25C6DA"
+            stroke-width="5.5"
+            stroke-linecap="round"/>
+
+      <!-- Body -->
+      <rect x="128" y="254" width="144" height="105" rx="28"
+            fill="url(#bodyGradient)"
+            stroke="#142B4A"
+            stroke-width="6"/>
+
+      <!-- Chest accent -->
+      <path d="M151 273H166"
+            stroke="#25C6DA"
+            stroke-width="4"
+            stroke-linecap="round"/>
+
+      <path d="M234 273H249"
+            stroke="#25C6DA"
+            stroke-width="4"
+            stroke-linecap="round"/>
+
+      <!-- Small safety shield -->
+      <path d="M200 278L223 286V305Q223 324 200 336Q177 324 177 305V286Z"
+            fill="#25C6DA"
+            stroke="#142B4A"
+            stroke-width="3.5"
+            stroke-linejoin="round"/>
+
+      <!-- Check mark -->
+      <path d="M188 306L196 314L212 296"
+            stroke="#FFFFFF"
+            stroke-width="6"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+
+      <!-- Status light -->
+      <circle cx="200" cy="348" r="3.5" fill="#25C6DA"/>
+
+    </g>
+  </g>
+
+  <style>
+    #mascot {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: mascot-float 3s ease-in-out infinite;
+    }
+
+    @keyframes mascot-float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #mascot {
+        animation: none;
+      }
+    }
+  </style>
+</svg>
