@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>RoadLens AI｜交通違規影像分析</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231769e0' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='central'>⌁</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231769e0' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='middle'>R</text></svg>">
   <style>
     :root {
       --ink: #10233f;
@@ -28,7 +28,7 @@
 
     *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans TC", sans-serif; font-size: 16px; line-height: 1.5; min-height: 100vh; }
+    body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans TC", sans-serif; font-size: 15px; line-height: 1.5; }
     button, input, select, textarea { font: inherit; color: inherit; }
     button { cursor: pointer; border: none; background: none; padding: 0; }
     a { color: var(--blue); text-decoration: none; }
@@ -38,9 +38,24 @@
     .shell { max-width: 1200px; margin: 0 auto; padding: 0 max(12px, env(safe-area-inset-left)) 60px max(12px, env(safe-area-inset-right)); }
     header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
     .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 18px; letter-spacing: 0.02em; color: var(--ink); }
-    .brand-mark { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--blue); color: white; border-radius: 10px; font-size: 20px; font-weight: bold; }
+    .brand-mark { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--blue); color: white; border-radius: 10px; font-size: 20px; font-weight: 800; }
     .badge { background: #eaf2ff; color: var(--blue); padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
     .hero { padding: 40px 0; text-align: center; }
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 18px;
+      width: min(100%, 520px);
+    }
+    .mascot-image {
+      display: block;
+      width: min(100%, 420px);
+      height: auto;
+      max-width: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 22px rgba(17, 87, 182, 0.12));
+    }
     .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; font-weight: 800; margin: 0 0 16px; }
     h1 { font-size: clamp(28px, 8vw, 56px); line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 20px; color: var(--ink); }
     h1 strong { color: var(--blue); font-weight: inherit; }
@@ -48,7 +63,7 @@
     .lead { color: var(--muted); font-size: 16px; line-height: 1.7; max-width: 600px; margin: 0 auto 32px; }
     .sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; line-height: 1.6; }
 
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: var(--radius); font-weight: 600; font-size: 14px; transition: all 0.2s ease; user-select: none; min-height: 44px; white-space: nowrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: var(--radius); font-weight: 600; font-size: 14px; transition: all 0.2s ease; }
     .btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(23, 105, 224, 0.2); }
     .btn:active { transform: translateY(0); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -68,21 +83,21 @@
     .drop-text { color: var(--muted); font-size: 14px; margin: 8px 0 0; pointer-events: none; }
 
     .upload-buttons { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-    .upload-btn { flex: 1; min-width: 140px; padding: 12px 16px; border-radius: var(--radius); font-weight: 600; font-size: 14px; border: none; cursor: pointer; background: var(--blue); color: white; transition: all 0.2s ease; }
+    .upload-btn { flex: 1; min-width: 140px; padding: 12px 16px; border-radius: var(--radius); font-weight: 600; font-size: 14px; border: none; cursor: pointer; background: var(--blue); color: white; }
     .upload-btn:active { transform: scale(0.98); }
     .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 12px; }
     .preview-item { position: relative; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #f4f7fa; }
     .preview-item img { width: 100%; height: 86px; object-fit: cover; display: block; }
-    .preview-item .remove-btn { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(16,35,63,0.7); color: #fff; font-size: 12px; }
+    .preview-item .remove-btn { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(16,35,63,0.7); color: white; font-size: 14px; }
 
     .summary-card { margin-top: 14px; padding: 14px; background: linear-gradient(135deg, rgba(23,105,224,0.06), rgba(23,105,224,0.01)); border: 1px solid rgba(23,105,224,0.14); border-radius: 10px; }
     .summary-row { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 13px; }
     .summary-row strong { color: var(--ink); }
 
     .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--line); overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .tab { padding: 12px 16px; background: none; border: none; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s ease; white-space: nowrap; }
+    .tab { padding: 12px 16px; background: none; border: none; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
     .tab:hover { color: var(--ink); }
     .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
     .tab-content { display: none; }
@@ -112,7 +127,7 @@
     .violation-detail { margin: 8px 0; font-size: 14px; line-height: 1.6; }
     .violation-detail strong { color: var(--ink); display: block; font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-    .history-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px; background: white; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+    .history-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px; background: white; border: 1px solid var(--line); border-radius: 8px; margin: 0 0 8px; }
     .history-item-content { flex: 1; min-width: 0; }
     .history-item-date { font-weight: 600; color: var(--ink); font-size: 14px; }
     .history-item-summary { color: var(--muted); font-size: 12px; margin-top: 4px; }
@@ -149,6 +164,8 @@
       .upload-btn { min-width: auto; }
       .tabs { gap: 4px; }
       .tab { padding: 10px 12px; font-size: 13px; }
+      .hero-visual { width: min(100%, 380px); }
+      .mascot-image { width: min(100%, 280px); }
     }
     @media (max-width: 480px) {
       .shell { padding-left: 8px; padding-right: 8px; padding-bottom: 40px; }
@@ -166,6 +183,8 @@
       .result-head { gap: 8px; }
       .notice { padding: 12px; font-size: 12px; }
       .preview-item img { height: 70px; }
+      .hero-visual { width: min(100%, 260px); }
+      .mascot-image { width: min(100%, 220px); }
     }
     @media print {
       body { background: white; }
@@ -203,6 +222,9 @@
     <div class="hero">
       <p class="eyebrow">🚗 SMART TRAFFIC ANALYSIS</p>
       <h1>讓照片替你<br><strong>看懂交通違規</strong></h1>
+      <div class="hero-visual" aria-label="Lensy 吉祥物">
+        <img src="./assets/lensy-mascot.svg" alt="Lensy 吉祥物" class="mascot-image" width="420" height="420">
+      </div>
       <p class="lead">AI 先整理照片中實際看得到的事實，再查對當地法規，幫你預估罰款。但最終確認還是要由你和主管機關決定。</p>
     </div>
 
@@ -361,7 +383,7 @@
 
     <div class="notice">
       <strong>⚠️ 重要提醒</strong><br>
-      即使 AI 信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。所有分析結果與罰款範圍都只是輔助資訊，不是正式法律判定。
+      即使 AI 信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。所有分析結果與罰款範圍都只是初步支援資訊，最終仍需以實際法規與現場判定為準。
     </div>
 
     <footer>
@@ -658,7 +680,7 @@
             <div class="violation-detail"><strong>💭 理由</strong>${v.reason}</div>
             ${v.evidence_location ? `<div class="violation-detail"><strong>📍 位置</strong>${v.evidence_location}</div>` : ''}
             ${v.fine_min !== null && v.fine_max !== null ? `<div class="violation-detail" style="background:#f6f9fc; padding:10px; border-radius:6px; margin-top:10px;"><strong>💰 預估罰款</strong>${formatCurrency(v.fine_min)} ~ ${formatCurrency(v.fine_max)}</div>` : ''}
-            ${v.uncertain ? `<div style="margin-top:10px; padding:8px; background:#fff8e8; border-left:2px solid var(--amber); color:#795a25; font-size:13px;">⚠️ 證據不完整，建議補充拍攝</div>` : ''}
+            ${v.uncertain ? `<div style="margin-top:10px; padding:8px; background:#fff8e8; border-left:2px solid var(--amber); color:#795a25; font-size:13px;">⚠️ 證據不完整，建議補充更清晰照片後再判定。</div>` : ''}
           </div>
         `;
       });
@@ -670,7 +692,13 @@
       if (!isLocalStorageAvailable()) return;
       try {
         const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_HISTORY) || '[]');
-        history.unshift({ id: Date.now(), date: formatDate(), summary: result.summary, violations: (result.violations || []).map(v => ({ type: v.violation, confidence: v.confidence, fine_min: v.fine_min, fine_max: v.fine_max })), estimated_min: result.estimated_fine_min, estimated_max: result.estimated_fine_max });
+        history.unshift({
+          id: Date.now(),
+          date: formatDate(),
+          summary: result.summary,
+          violations: (result.violations || []).map(v => ({ type: v.violation, confidence: v.confidence, fine_min: v.fine_min, fine_max: v.fine_max })),
+          estimated_max: Math.max(...((result.violations || []).map(v => Number(v.fine_max || 0))), 0)
+        });
         localStorage.setItem(CONFIG.STORAGE_HISTORY, JSON.stringify(history.slice(0, 30)));
         loadHistory();
       } catch (err) { console.error('Failed to save history:', err); }
