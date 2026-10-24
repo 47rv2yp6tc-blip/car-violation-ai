@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>RoadLens AI｜交通違規影像分析</title>
   <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231769e0' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='middle'>R</text></svg>">
   <style>
     :root {
       --ink: #10233f;
@@ -21,377 +22,807 @@
       --amber: #a66300;
       --green: #147d67;
       --shadow: 0 8px 26px rgba(32, 62, 92, 0.08);
-      --radius: 14px;
+      --radius: 12px;
+      --gap: clamp(10px, 2vw, 18px);
     }
 
     *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans TC", sans-serif;
-      line-height: 1.5;
-    }
-    img { max-width: 100%; height: auto; display: block; }
+    body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans TC", sans-serif; font-size: 15px; line-height: 1.5; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; padding: 0; }
     a { color: var(--blue); text-decoration: none; }
-    button, input, select { font: inherit; color: inherit; }
+    a:hover { text-decoration: underline; }
+    img, video, canvas, svg { max-width: 100%; height: auto; display: block; }
 
-    .shell {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 16px 64px;
-    }
+    .shell { max-width: 1200px; margin: 0 auto; padding: 0 max(12px, env(safe-area-inset-left)) 60px max(12px, env(safe-area-inset-right)); }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 18px; letter-spacing: 0.02em; color: var(--ink); }
+    .brand-mark { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--blue); color: white; border-radius: 10px; font-size: 20px; font-weight: 800; }
+    .badge { background: #eaf2ff; color: var(--blue); padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
+    .hero { padding: 40px 0; text-align: center; }
+    .hero-visual { display: flex; justify-content: center; align-items: center; margin: 0 auto 18px; width: min(100%, 520px); }
+    .mascot-image { display: block; width: min(100%, 420px); height: auto; max-width: 100%; object-fit: contain; filter: drop-shadow(0 10px 22px rgba(17, 87, 182, 0.12)); }
+    .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; font-weight: 800; margin: 0 0 16px; }
+    h1 { font-size: clamp(28px, 8vw, 56px); line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 20px; color: var(--ink); }
+    h1 strong { color: var(--blue); font-weight: inherit; }
+    h2 { font-size: 22px; line-height: 1.3; margin: 0 0 8px; color: var(--ink); }
+    .lead { color: var(--muted); font-size: 16px; line-height: 1.7; max-width: 600px; margin: 0 auto 32px; }
+    .sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; line-height: 1.6; }
 
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 20px 0 18px;
-      border-bottom: 1px solid var(--line);
-      flex-wrap: wrap;
-    }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 24px; border-radius: var(--radius); font-weight: 700; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; border: 1px solid transparent; }
+    .btn:focus-visible { outline: 3px solid rgba(23,105,224,0.22); outline-offset: 2px; }
+    .btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(23, 105, 224, 0.2); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--blue); color: white; box-shadow: 0 4px 12px rgba(23, 105, 224, 0.25); }
+    .btn-secondary { background: white; color: var(--ink); border-color: var(--line); box-shadow: 0 2px 8px rgba(32, 62, 92, 0.04); }
+    .btn-danger { background: #ffecec; color: var(--red); }
+    .btn-success { background: #ecf8f2; color: var(--green); }
+    .btn-small { padding: 8px 12px; font-size: 13px; min-height: 32px; }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: 0.02em;
-    }
-    .brand-mark {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--blue), #1ea7d3);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 20px;
-      box-shadow: 0 8px 18px rgba(23, 105, 224, 0.22);
-    }
-    .brand-sub {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
-    .badge {
-      background: #ecf3ff;
-      color: var(--blue);
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-weight: 700;
-      font-size: 12px;
-      white-space: nowrap;
-    }
+    .panel { background: white; border: 1px solid var(--line); border-radius: 16px; padding: clamp(16px, 4vw, 28px); box-shadow: var(--shadow); margin-bottom: 24px; }
+    .workspace { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; margin-bottom: 24px; }
 
-    .hero {
-      padding: 44px 0 28px;
-      text-align: center;
-    }
-    .eyebrow {
-      color: var(--blue);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-weight: 800;
-      font-size: 12px;
-      margin: 0 0 18px;
-    }
-    h1 {
-      margin: 0 0 16px;
-      font-size: clamp(32px, 6vw, 64px);
-      line-height: 1.1;
-      letter-spacing: -0.04em;
-      color: var(--ink);
-    }
-    h1 strong { color: var(--blue); }
-    .lead {
-      margin: 0 auto 22px;
-      max-width: 700px;
-      font-size: 16px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-    .hero-actions {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 22px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 14px;
-      border: 1px solid transparent;
-      background: var(--blue);
-      color: white;
-      box-shadow: 0 10px 24px rgba(23, 105, 224, 0.18);
-    }
-    .btn.secondary {
-      background: white;
-      color: var(--ink);
-      border-color: var(--line);
-      box-shadow: none;
-    }
+    .drop-zone { border: 2px dashed var(--line); border-radius: 14px; padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #fafbfc; user-select: none; }
+    .drop-zone:hover { border-color: var(--blue); background: #f0f5ff; }
+    .drop-zone.drag-active { border-color: var(--blue); background: #eaf2ff; box-shadow: 0 0 0 6px rgba(23, 105, 224, 0.1); }
+    .drop-icon { font-size: 42px; margin: 0 0 12px; pointer-events: none; }
+    .drop-text { color: var(--muted); font-size: 14px; margin: 8px 0 0; pointer-events: none; }
 
-    .dashboard {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.8fr);
-      gap: 24px;
-      align-items: start;
-    }
+    .upload-buttons { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .upload-btn { flex: 1; min-width: 140px; padding: 12px 16px; border-radius: var(--radius); font-weight: 700; font-size: 14px; border: none; cursor: pointer; background: linear-gradient(180deg, #1d68eb 0%, #1769e0 100%); color: white; box-shadow: 0 4px 12px rgba(23, 105, 224, 0.18); transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; }
+    .upload-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(23, 105, 224, 0.2); }
+    .upload-btn:active { transform: scale(0.98); }
+    .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .panel {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 22px;
-    }
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 12px; }
+    .preview-item { position: relative; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #f4f7fa; }
+    .preview-item img { width: 100%; height: 86px; object-fit: cover; display: block; }
+    .preview-item .remove-btn { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(16,35,63,0.7); color: white; }
 
-    .drop-zone {
-      border: 2px dashed var(--line);
-      background: #fafbfd;
-      border-radius: 16px;
-      padding: 28px 20px;
-      text-align: center;
-      transition: 0.2s ease;
-    }
-    .drop-zone:hover { border-color: var(--blue); background: #f1f7ff; }
-    .drop-icon {
-      font-size: 42px;
-      margin-bottom: 8px;
-      opacity: 0.8;
-    }
-    .drop-text {
-      color: var(--muted);
-      font-size: 14px;
-      margin: 0;
-    }
-    .upload-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 18px;
-    }
-    .upload-btn {
-      flex: 1 1 180px;
-      min-height: 46px;
-      border-radius: 12px;
-      background: var(--blue);
-      color: white;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-    }
-    .upload-btn.secondary {
-      background: white;
-      color: var(--ink);
-      border: 1px solid var(--line);
-    }
-
-    .summary-card {
-      margin-top: 18px;
-      background: linear-gradient(135deg, rgba(23,105,224,0.06), rgba(23,105,224,0.01));
-      border: 1px solid rgba(23,105,224,0.12);
-      border-radius: 14px;
-      padding: 16px;
-    }
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 6px 0;
-    }
+    .summary-card { margin-top: 14px; padding: 14px; background: linear-gradient(135deg, rgba(23,105,224,0.06), rgba(23,105,224,0.01)); border: 1px solid rgba(23,105,224,0.14); border-radius: 10px; }
+    .summary-row { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 13px; }
     .summary-row strong { color: var(--ink); }
 
-    .meta-panel {
-      display: grid;
-      gap: 18px;
-    }
-    .signal-card {
-      background: #f8fbff;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 18px;
-    }
-    .signal-title {
-      margin: 0 0 10px;
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 8px;
-    }
-    .metric {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px 10px;
-      text-align: center;
-    }
-    .metric-value {
-      display: block;
-      color: var(--blue);
-      font-size: 20px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-    .metric-label {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 4px;
-    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--line); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab { padding: 12px 16px; background: none; border: none; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .feature-strip {
-      margin-top: 28px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-    .feature-card {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 18px 16px;
-      box-shadow: var(--shadow);
-      text-align: center;
-    }
-    .feature-icon {
-      width: 52px;
-      height: 52px;
-      margin: 0 auto 12px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(23,105,224,0.12), rgba(30,167,211,0.08));
-      display: grid;
-      place-items: center;
-      color: var(--blue);
-      font-size: 24px;
-      font-weight: 800;
-    }
-    .feature-card h3 {
-      margin: 0 0 8px;
-      font-size: 18px;
-    }
-    .feature-card p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
+    .result-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .result-head > div:first-child { flex: 1 1 auto; min-width: 200px; }
+    .result-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-    @media (max-width: 900px) {
-      .dashboard { grid-template-columns: 1fr; }
-      .feature-strip { grid-template-columns: 1fr; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
+    .empty-title { font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+
+    .score-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 12px; margin-bottom: 16px; }
+    .score-box { padding: 12px 14px; border-radius: 10px; background: #f7f9fc; border: 1px solid var(--line); }
+    .score-box .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .score-box .value { font-weight: 700; color: var(--ink); font-size: 20px; }
+
+    .violation-card { border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 10px; padding: 16px; margin-bottom: 12px; background: white; transition: all 0.2s ease; }
+    .violation-card:hover { box-shadow: 0 4px 12px rgba(199,68,77,0.1); }
+    .violation-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .violation-type { font-weight: 700; color: var(--ink); font-size: 15px; }
+    .confidence-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #eaf2ff; color: var(--blue); border-radius: 8px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .confidence-badge.high { background: #ecf8f2; color: var(--green); }
+    .confidence-badge.low { background: #ffecec; color: var(--red); }
+    .violation-detail { margin: 8px 0; font-size: 14px; line-height: 1.6; }
+    .violation-detail strong { color: var(--ink); display: block; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .history-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px; background: white; border: 1px solid var(--line); border-radius: 8px; margin: 0 0 8px; }
+    .history-item-content { flex: 1; min-width: 0; }
+    .history-item-date { font-weight: 600; color: var(--ink); font-size: 14px; }
+    .history-item-summary { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .history-item-meta { text-align: right; white-space: nowrap; font-size: 12px; color: var(--muted); }
+
+    .alert { padding: 16px; border-radius: var(--radius); margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start; }
+    .alert-info { background: #eaf2ff; color: var(--blue); border: 1px solid rgba(23, 105, 224, 0.2); }
+    .alert-warning { background: #fff8e8; color: #795a25; border: 1px solid rgba(166, 99, 0, 0.2); }
+    .alert-error { background: #ffecec; color: var(--red); border: 1px solid rgba(199, 68, 77, 0.2); }
+    .alert-success { background: #ecf8f2; color: var(--green); border: 1px solid rgba(20, 125, 103, 0.2); }
+    .alert-icon { font-size: 18px; flex-shrink: 0; }
+    .alert-content { flex: 1; }
+    .alert-text { font-size: 13px; line-height: 1.6; }
+
+    .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(23, 105, 224, 0.2); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .notice { background: #fff8e8; color: #795a25; padding: 16px; border-radius: var(--radius); border-left: 4px solid var(--amber); margin: 32px 0; font-size: 13px; line-height: 1.7; }
+    .notice strong { color: #604514; display: block; margin-bottom: 6px; }
+    footer { text-align: center; padding: 40px 0; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+    input[type="file"] { display: none; }
+
+    @media (max-width: 768px) {
+      .shell { padding-left: 12px; padding-right: 12px; }
+      header { padding: 16px 0; }
+      .hero { padding: 28px 0; }
+      h1 { font-size: clamp(24px, 6vw, 40px); }
+      .workspace { grid-template-columns: 1fr; }
+      .result-head { flex-direction: column; }
+      .result-actions { width: 100%; justify-content: stretch; }
+      .result-actions .btn { flex: 1; }
+      .drop-zone { padding: 20px; }
+      .upload-buttons { flex-direction: column; }
+      .upload-btn { min-width: auto; }
+      .tabs { gap: 4px; }
+      .tab { padding: 10px 12px; font-size: 13px; }
+      .hero-visual { width: min(100%, 380px); }
+      .mascot-image { width: min(100%, 280px); }
+    }
+    @media (max-width: 480px) {
+      .shell { padding-left: 8px; padding-right: 8px; padding-bottom: 40px; }
+      header { padding: 12px 0; gap: 8px; }
+      .brand { font-size: 16px; gap: 8px; }
+      .brand-mark { width: 36px; height: 36px; font-size: 18px; }
+      h1 { font-size: clamp(20px, 5vw, 28px); }
+      h2 { font-size: 18px; }
+      .btn { padding: 10px 16px; font-size: 13px; min-height: 40px; }
+      .upload-btn { padding: 10px 12px; font-size: 13px; min-height: 40px; }
+      .panel { padding: 14px; border-radius: 12px; }
+      .violation-card { padding: 12px; }
+      .empty-state { padding: 40px 16px; }
+      .empty-icon { font-size: 36px; }
+      .result-head { gap: 8px; }
+      .notice { padding: 12px; font-size: 12px; }
+      .preview-item img { height: 70px; }
+      .hero-visual { width: min(100%, 260px); }
+      .mascot-image { width: min(100%, 220px); }
+    }
+    @media print {
+      body { background: white; }
+      .btn, .tabs, footer, .result-actions, .upload-buttons { display: none; }
+      .panel { box-shadow: none; page-break-inside: avoid; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #f0f4f8; --muted: #a8b8c8; --line: #2d3d4d; --bg: #0f1419; --card: #1a2332; --shadow: 0 8px 26px rgba(0,0,0,0.3);
+      }
+      body { background: var(--bg); color: var(--ink); }
+      .drop-zone { background: #1a2332; }
+      .drop-zone:hover { background: #1a2f50; }
+      .drop-zone.drag-active { background: #1a2f50; }
+      .btn-secondary { background: #1a2332; color: var(--ink); }
+      .upload-btn { background: linear-gradient(180deg, #1d68eb 0%, #1769e0 100%); }
+      .panel, .violation-card, .history-item, .score-box { background: var(--card); }
+      .preview-item { background: #202d3d; }
+      .summary-card { background: rgba(23,105,224,0.12); }
     }
   </style>
 </head>
 <body>
   <div class="shell">
     <header>
-      <div class="brand" aria-label="RoadLens AI 品牌" role="img">
-        <span class="brand-mark">R</span>
-        <div>
-          <span>RoadLens AI</span>
-          <span class="brand-sub">AI 道路違規辨識</span>
-        </div>
+      <div class="brand">
+        <div class="brand-mark">⌁</div>
+        <span>RoadLens AI</span>
       </div>
-      <div class="badge">AI 交通影像分析</div>
+      <span class="badge">Gemini Vision · 證據優先分析</span>
     </header>
 
-    <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">RoadLens AI</p>
-        <h1 id="hero-title">智慧交通分析，<strong>更快判定</strong></h1>
-        <p class="lead">上傳影像後，系統即進行違規檢測、風險分級與判斷摘要，讓你在最短時間內掌握車輛狀況與風險資訊。</p>
-        <div class="hero-actions">
-          <button class="btn" type="button">開始分析</button>
-          <button class="btn secondary" type="button">查看流程</button>
-        </div>
-      </section>
+    <div class="hero">
+      <p class="eyebrow">🚗 SMART TRAFFIC ANALYSIS</p>
+      <h1>讓照片替你<br><strong>看懂交通違規</strong></h1>
+      <div class="hero-visual" aria-label="Lensy 吉祥物">
+        <img src="./assets/lensy-mascot.svg" alt="Lensy 吉祥物" class="mascot-image" width="420" height="420">
+      </div>
+      <p class="lead">AI 先整理照片中實際看得到的事實，再查對當地法規，幫你預估罰款。但最終確認還是要由你和主管機關決定。</p>
+    </div>
 
-      <section class="dashboard" aria-label="分析工作區">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="analyze">📷 照片分析</button>
+      <button class="tab" role="tab" data-tab="history">📋 歷史紀錄</button>
+      <button class="tab" role="tab" data-tab="calculator">💰 罰款計算</button>
+      <button class="tab" role="tab" data-tab="settings">⚙️ 設定</button>
+    </nav>
+
+    <div class="tab-content active" id="analyze" role="tabpanel">
+      <div class="workspace">
         <div class="panel">
-          <div class="drop-zone" aria-label="上傳影像區域">
-            <div class="drop-icon" aria-hidden="true">⬆</div>
-            <p class="drop-text">拖曳影像至此，或選擇檔案進行 AI 分析</p>
+          <h2>上傳照片</h2>
+          <p class="sub">支援 JPG、PNG、WEBP 格式，最多 6 張，每張 10 MB 以內</p>
+
+          <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="拖放照片或點擊選擇">
+            <div class="drop-icon">📸</div>
+            <div style="font-weight: 600; color: var(--ink);">拖放照片或點擊選擇</div>
+            <div class="drop-text">可一次上傳多張同一事件的照片</div>
           </div>
+
           <div class="upload-buttons">
-            <button class="upload-btn" type="button">選擇檔案</button>
-            <button class="upload-btn secondary" type="button">範例影像</button>
+            <button class="upload-btn" id="selectPhotosBtn">📱 選擇照片</button>
+            <button class="upload-btn" id="takePhotoBtn">📷 拍照</button>
           </div>
-          <div class="summary-card" aria-live="polite">
-            <div class="summary-row"><span>待分析影像</span><strong>0 筆</strong></div>
-            <div class="summary-row"><span>檢測完成</span><strong>12 / 24</strong></div>
-            <div class="summary-row"><span>判定結果</span><strong>待更新</strong></div>
+
+          <input type="file" id="fileInput" accept="image/*" multiple aria-hidden="true">
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" aria-hidden="true">
+
+          <div class="summary-card" id="selectionSummary" style="display:none;">
+            <div class="summary-row"><span>已選照片</span><strong id="selectedCount">0</strong></div>
+            <div class="summary-row"><span>總容量</span><strong id="selectedSize">0 MB</strong></div>
+            <div class="summary-row"><span>分析狀態</span><strong id="selectionStatus">等待中</strong></div>
+          </div>
+
+          <div id="fileList" style="margin-top: 16px; display: none;">
+            <p style="font-size: 13px; color: var(--muted); margin: 0 0 8px;">已選擇的照片：</p>
+            <div id="fileNames" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+
+          <div id="previewGrid" class="preview-grid" aria-live="polite"></div>
+
+          <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+            <button class="btn btn-primary" id="analyzeBtn" style="flex:1; min-width:160px;" disabled>
+              <span id="analyzeBtnText">選擇照片開始分析</span>
+            </button>
+            <button class="btn btn-secondary" id="clearSelectionBtn" style="flex:0 0 auto;">清空選擇</button>
           </div>
         </div>
 
-        <aside class="meta-panel" aria-label="分析概覽">
-          <div class="signal-card">
-            <h2 class="signal-title">檢測概覽</h2>
-            <div class="metric-grid">
-              <div class="metric">
-                <span class="metric-value">24</span>
-                <span class="metric-label">影像數</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">91%</span>
-                <span class="metric-label">辨識率</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">3.2s</span>
-                <span class="metric-label">平均處理</span>
-              </div>
+        <div class="panel">
+          <div class="result-head">
+            <div>
+              <h2>分析結果</h2>
+              <p class="sub">AI 分析完成後會在這裡顯示</p>
+            </div>
+            <div class="result-actions" id="resultActions" style="display: none;">
+              <button class="btn btn-secondary btn-small" id="resetResultBtn">重設</button>
+              <button class="btn btn-secondary btn-small" id="downloadTxt">📄 文字</button>
+              <button class="btn btn-secondary btn-small" id="downloadJson">📋 JSON</button>
             </div>
           </div>
-          <div class="signal-card">
-            <h2 class="signal-title">系統狀態</h2>
-            <div class="summary-row"><span>影像來源</span><strong>本地 / 雲端</strong></div>
-            <div class="summary-row"><span>模型狀態</span><strong>正常</strong></div>
-            <div class="summary-row"><span>更新頻率</span><strong>即時</strong></div>
-          </div>
-        </aside>
-      </section>
 
-      <section class="feature-strip" aria-label="產品亮點">
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">◎</div>
-          <h3>規則檢測</h3>
-          <p>快速比對交通法規與影像內容，協助判定違規類型。</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">▣</div>
-          <h3>風險分類</h3>
-          <p>依照照片資訊與斷點判定，高效區分高、中、低風險案例。</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">✓</div>
-          <h3>結果摘要</h3>
-          <p>整理出關鍵判定與建議，讓交通監理流程更簡潔且清楚。</p>
-        </article>
-      </section>
-    </main>
+          <div id="resultContent" class="empty-state">
+            <div class="empty-icon">✦</div>
+            <div class="empty-title">等待分析結果</div>
+            <p>上傳照片���會在這裡顯示 AI 分析的違規項目、信心度和預估罰款</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="history" role="tabpanel">
+      <div class="panel">
+        <div class="result-head">
+          <div>
+            <h2>分析歷史</h2>
+            <p class="sub">最近的分析紀錄（保留 30 筆）</p>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-danger btn-small" id="clearHistoryBtn">🗑️ 清除歷史</button>
+          </div>
+        </div>
+        <div id="historyContent" class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">尚無分析紀錄</div>
+          <p>分析照片後會保存紀錄在這裡</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="calculator" role="tabpanel">
+      <div class="panel">
+        <h2>手動罰款計算器</h2>
+        <p class="sub">輸入違規項目和罰款金額進行計算</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <input type="text" id="violationType" placeholder="違規類型" style="padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px;">
+          <input type="number" id="fineAmount" placeholder="罰款金額" style="padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px;">
+        </div>
+
+        <button class="btn btn-primary" id="addCalcBtn" style="width: 100%;">+ 新增項目</button>
+
+        <div id="calcList" style="margin-top: 20px; display: none;">
+          <p style="font-size: 13px; color: var(--muted); margin: 0 0 12px; font-weight: 600;">計算清單：</p>
+          <div id="calcItems"></div>
+          <div style="padding: 16px; background: #f6f9fc; border-radius: 8px; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; color: var(--ink);">合計：</span>
+              <span style="font-size: 20px; font-weight: 700; color: var(--blue);">$<span id="calcTotal">0</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="settings" role="tabpanel">
+      <div class="panel">
+        <h2>設定與狀態</h2>
+        <p class="sub">系統資訊和本機儲存狀態</p>
+
+        <div style="display: grid; gap: 12px; margin-top: 20px;">
+          <div class="history-item" style="margin: 0;">
+            <div>
+              <div style="font-weight: 600; color: var(--ink);">AI 模式</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">使用 Google Gemini Vision</div>
+            </div>
+            <span style="color: var(--green); font-weight: 600;">✓ 啟用</span>
+          </div>
+          <div class="history-item" style="margin: 0;">
+            <div>
+              <div style="font-weight: 600; color: var(--ink);">本機儲存</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">分析歷史和設定</div>
+            </div>
+            <span id="storageStatus" style="color: var(--green); font-weight: 600;">✓ 可用</span>
+          </div>
+          <div class="history-item" style="margin: 0;">
+            <div>
+              <div style="font-weight: 600; color: var(--ink);">Service Worker</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">離線快取和推送</div>
+            </div>
+            <span id="swStatus" style="color: var(--muted); font-weight: 600;">⏳ 檢測中</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top: 20px;">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <div class="alert-title">隱私政策</div>
+            <div class="alert-text">照片由瀏覽器直接傳送到 AI 分析服務，本應用不保存原始照片。分析歷史只保存在你的瀏覽器本機。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>⚠️ 重要提醒</strong><br>
+      即使 AI 信心高，也不能取代人工與主管機關判定。若標線、號誌、車輛位置或例外情況不清楚，請重新拍攝。所有分析結果與罰款範圍都只是估算，必要時請由主管機關確認。
+    </div>
+
+    <footer>
+      <p>RoadLens AI · 讓道路更安全，讓判斷更透明<br>
+      <small>© 2026 · 版本 1.1 · <a href="https://github.com/47rv2yp6tc-blip/car-violation-ai">GitHub</a></small></p>
+    </footer>
   </div>
+
+  <script>
+    'use strict';
+
+    const CONFIG = { MAX_FILES: 6, MAX_FILE_SIZE: 10 * 1024 * 1024, API_ENDPOINT: '/api/analyze', STORAGE_HISTORY: 'roadlens_history_v1', STORAGE_SETTINGS: 'roadlens_settings_v1' };
+
+    const DOM = {
+      dropZone: document.getElementById('dropZone'),
+      fileInput: document.getElementById('fileInput'),
+      cameraInput: document.getElementById('cameraInput'),
+      selectPhotosBtn: document.getElementById('selectPhotosBtn'),
+      takePhotoBtn: document.getElementById('takePhotoBtn'),
+      fileList: document.getElementById('fileList'),
+      fileNames: document.getElementById('fileNames'),
+      previewGrid: document.getElementById('previewGrid'),
+      selectionSummary: document.getElementById('selectionSummary'),
+      selectedCount: document.getElementById('selectedCount'),
+      selectedSize: document.getElementById('selectedSize'),
+      selectionStatus: document.getElementById('selectionStatus'),
+      analyzeBtn: document.getElementById('analyzeBtn'),
+      analyzeBtnText: document.getElementById('analyzeBtnText'),
+      clearSelectionBtn: document.getElementById('clearSelectionBtn'),
+      resultContent: document.getElementById('resultContent'),
+      resultActions: document.getElementById('resultActions'),
+      resetResultBtn: document.getElementById('resetResultBtn'),
+      downloadTxt: document.getElementById('downloadTxt'),
+      downloadJson: document.getElementById('downloadJson'),
+      tabs: document.querySelectorAll('.tab'),
+      tabContents: document.querySelectorAll('.tab-content'),
+      historyContent: document.getElementById('historyContent'),
+      clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+      calcList: document.getElementById('calcList'),
+      calcItems: document.getElementById('calcItems'),
+      calcTotal: document.getElementById('calcTotal'),
+      addCalcBtn: document.getElementById('addCalcBtn'),
+      violationType: document.getElementById('violationType'),
+      fineAmount: document.getElementById('fineAmount'),
+      swStatus: document.getElementById('swStatus'),
+      storageStatus: document.getElementById('storageStatus')
+    };
+
+    let state = { selectedFiles: [], lastResult: null, calcItems: [] };
+
+    function formatDate(date = new Date()) { return date.toLocaleString('zh-Hant', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+    function formatCurrency(num) { return new Intl.NumberFormat('zh-Hant', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(num); }
+    function isLocalStorageAvailable() {
+      try { const test = '__storage_test__'; localStorage.setItem(test, test); localStorage.removeItem(test); return true; }
+      catch { return false; }
+    }
+
+    function showAlert(message, type = 'info') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.innerHTML = `
+        <div class="alert-icon">${type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️'}</div>
+        <div class="alert-content"><div class="alert-text">${message}</div></div>
+      `;
+      DOM.resultContent.parentElement.insertBefore(alertDiv, DOM.resultContent);
+      setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    DOM.tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        DOM.tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        DOM.tabContents.forEach(content => content.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+      });
+    });
+
+    function updateSelectionSummary() {
+      if (!state.selectedFiles.length) {
+        DOM.selectionSummary.style.display = 'none';
+        return;
+      }
+      const totalBytes = state.selectedFiles.reduce((sum, file) => sum + file.size, 0);
+      const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+      DOM.selectionSummary.style.display = 'block';
+      DOM.selectedCount.textContent = String(state.selectedFiles.length);
+      DOM.selectedSize.textContent = `${totalMB} MB`;
+      DOM.selectionStatus.textContent = state.selectedFiles.length >= 2 ? '已就緒' : '準備完成';
+    }
+
+    function renderPreviewGrid() {
+      DOM.previewGrid.innerHTML = '';
+      if (!state.selectedFiles.length) {
+        DOM.previewGrid.innerHTML = '';
+        return;
+      }
+      state.selectedFiles.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `
+          <img src="${url}" alt="預覽 ${index + 1}">
+          <button class="remove-btn" aria-label="移除圖片" data-index="${index}">×</button>
+        `;
+        item.querySelector('.remove-btn').addEventListener('click', () => {
+          state.selectedFiles.splice(index, 1);
+          renderPreviewGrid();
+          updateSelectionSummary();
+          DOM.fileInput.value = '';
+          DOM.cameraInput.value = '';
+          DOM.analyzeBtn.disabled = state.selectedFiles.length === 0;
+          if (!state.selectedFiles.length) {
+            DOM.analyzeBtnText.textContent = '選擇照片開始分析';
+            DOM.fileList.style.display = 'none';
+            DOM.resultActions.style.display = 'none';
+          }
+        });
+        DOM.previewGrid.appendChild(item);
+      });
+    }
+
+    function setupFileUpload() {
+      DOM.selectPhotosBtn.addEventListener('click', (e) => { e.preventDefault(); DOM.fileInput.click(); });
+      DOM.takePhotoBtn.addEventListener('click', (e) => { e.preventDefault(); DOM.cameraInput.click(); });
+      DOM.dropZone.addEventListener('click', () => { DOM.fileInput.click(); });
+      DOM.dropZone.addEventListener('dragover', e => { e.preventDefault(); DOM.dropZone.classList.add('drag-active'); });
+      DOM.dropZone.addEventListener('dragleave', e => { e.preventDefault(); DOM.dropZone.classList.remove('drag-active'); });
+      DOM.dropZone.addEventListener('drop', e => { e.preventDefault(); DOM.dropZone.classList.remove('drag-active'); handleFiles(e.dataTransfer.files); });
+      DOM.fileInput.addEventListener('change', e => handleFiles(e.target.files));
+      DOM.cameraInput.addEventListener('change', e => handleFiles(e.target.files));
+    }
+
+    function handleFiles(files) {
+      const validFiles = Array.from(files)
+        .filter(f => f.type.startsWith('image/'))
+        .slice(0, CONFIG.MAX_FILES);
+
+      if (validFiles.length === 0) {
+        showAlert('請選擇有效的圖片檔案', 'error');
+        return;
+      }
+      if (validFiles.some(f => f.size > CONFIG.MAX_FILE_SIZE)) {
+        showAlert('某些檔案超過 10 MB 的大小限制', 'error');
+        return;
+      }
+      state.selectedFiles = validFiles;
+      updateFileList();
+      renderPreviewGrid();
+      updateSelectionSummary();
+      DOM.analyzeBtn.disabled = false;
+      DOM.analyzeBtnText.textContent = state.selectedFiles.length > 1 ? '開始分析多張照片' : '開始分析';
+    }
+
+    function updateFileList() {
+      if (!state.selectedFiles.length) {
+        DOM.fileList.style.display = 'none';
+        return;
+      }
+      DOM.fileList.style.display = 'block';
+      DOM.fileNames.innerHTML = state.selectedFiles.map((f) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#f6f9fc; border-radius:6px; font-size:13px;">
+          <span>${f.name}</span>
+          <span style="color:var(--muted);">${(f.size / 1024 / 1024).toFixed(1)} MB</span>
+        </div>`).join('');
+    }
+
+    function clearSelection() {
+      state.selectedFiles = [];
+      DOM.fileInput.value = '';
+      DOM.cameraInput.value = '';
+      DOM.fileList.style.display = 'none';
+      DOM.fileNames.innerHTML = '';
+      DOM.previewGrid.innerHTML = '';
+      DOM.selectionSummary.style.display = 'none';
+      DOM.analyzeBtn.disabled = true;
+      DOM.analyzeBtnText.textContent = '選擇照片開始分析';
+      DOM.selectionStatus.textContent = '等待中';
+    }
+
+    function resetResult() {
+      state.lastResult = null;
+      DOM.resultContent.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">✦</div>
+          <div class="empty-title">等待分析結果</div>
+          <p>上傳照片後會在這裡顯示 AI 分析的違規項目、信心度和預估罰款</p>
+        </div>
+      `;
+      DOM.resultActions.style.display = 'none';
+    }
+
+    async function analyzeImages() {
+      if (!state.selectedFiles.length) return;
+      DOM.analyzeBtn.disabled = true;
+      DOM.analyzeBtnText.textContent = '分析中…';
+
+      try {
+        DOM.resultContent.innerHTML = `
+          <div style="text-align:center; padding:40px 20px;">
+            <div class="loader" style="margin:0 auto 16px;"></div>
+            <p style="color:var(--muted);">AI 正在分析照片，請稍候…</p>
+          </div>
+        `;
+
+        const images = await Promise.all(state.selectedFiles.map(file => readFileAsDataURL(file)));
+        const response = await fetch(CONFIG.API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ images, mimeTypes: state.selectedFiles.map(f => f.type) }) });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: '分析失敗' }));
+          throw new Error(error.error || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        state.lastResult = result;
+        displayResult(result);
+        saveToHistory(result);
+        DOM.resultActions.style.display = 'flex';
+      } catch (err) {
+        showAlert(`分析失敗: ${err.message}`, 'error');
+        DOM.resultContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-title">分析失敗</div>
+            <p>${err.message}</p>
+          </div>
+        `;
+      } finally {
+        DOM.analyzeBtn.disabled = false;
+        DOM.analyzeBtnText.textContent = state.selectedFiles.length > 1 ? '重新分析多張照片' : '重新分析';
+      }
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function displayResult(result) {
+      const violations = Array.isArray(result?.violations) ? result.violations : [];
+      const averageConfidence = violations.length ? Math.round(violations.reduce((sum, v) => sum + Number(v.confidence || 0), 0) / violations.length) : 0;
+      const maxFine = violations.length ? Math.max(...violations.map(v => Number(v.fine_max || 0))) : 0;
+
+      let html = `
+        <div class="score-strip">
+          <div class="score-box"><div class="label">照片數</div><div class="value">${state.selectedFiles.length}</div></div>
+          <div class="score-box"><div class="label">違規項目</div><div class="value">${violations.length}</div></div>
+          <div class="score-box"><div class="label">平均信心</div><div class="value">${averageConfidence}%</div></div>
+          <div class="score-box"><div class="label">最大預估</div><div class="value">${maxFine ? formatCurrency(maxFine) : '—'}</div></div>
+        </div>
+      `;
+
+      if (!violations.length) {
+        html += `
+          <div class="empty-state" style="padding:20px 10px;">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">分析完成</div>
+            <p>${result.summary || '未偵測到明顯的交通違規'}</p>
+          </div>
+        `;
+        DOM.resultContent.innerHTML = html;
+        return;
+      }
+
+      html += `
+        <div class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content"><div class="alert-text">${result.summary || '已識別出以下違規項目'}</div></div>
+        </div>
+      `;
+
+      violations.forEach((v, i) => {
+        const isHighConfidence = Number(v.confidence || 0) >= 70;
+        const isLowConfidence = Number(v.confidence || 0) < 50;
+        html += `
+          <div class="violation-card">
+            <div class="violation-header">
+              <div class="violation-type">${i + 1}. ${v.violation}</div>
+              <div class="confidence-badge ${isHighConfidence ? 'high' : isLowConfidence ? 'low' : ''}">🎯 信心 ${v.confidence}%</div>
+            </div>
+            <div class="violation-detail"><strong>📸 證據</strong>${v.evidence}</div>
+            <div class="violation-detail"><strong>💭 理由</strong>${v.reason}</div>
+            ${v.evidence_location ? `<div class="violation-detail"><strong>📍 位置</strong>${v.evidence_location}</div>` : ''}
+            ${v.fine_min !== null && v.fine_max !== null ? `<div class="violation-detail" style="background:#f6f9fc; padding:10px; border-radius:6px; margin-top:10px;"><strong>💰 預估罰款</strong>${formatCurrency(v.fine_min)} ~ ${formatCurrency(v.fine_max)}</div>` : ''}
+            ${v.uncertain ? `<div style="margin-top:10px; padding:8px; background:#fff8e8; border-left:2px solid var(--amber); color:#795a25; font-size:13px;">⚠️ 證據不完整，建議補充照片後再判定。</div>` : ''}
+          </div>
+        `;
+      });
+
+      DOM.resultContent.innerHTML = html;
+    }
+
+    function saveToHistory(result) {
+      if (!isLocalStorageAvailable()) return;
+      try {
+        const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_HISTORY) || '[]');
+        history.unshift({
+          id: Date.now(),
+          date: formatDate(),
+          summary: result.summary,
+          violations: (result.violations || []).map(v => ({ type: v.violation, confidence: v.confidence, fine_min: v.fine_min, fine_max: v.fine_max })),
+          estimated_max: Math.max(...((result.violations || []).map(v => Number(v.fine_max || 0))), 0)
+        });
+        localStorage.setItem(CONFIG.STORAGE_HISTORY, JSON.stringify(history.slice(0, 30)));
+        loadHistory();
+      } catch (err) { console.error('Failed to save history:', err); }
+    }
+
+    function loadHistory() {
+      if (!isLocalStorageAvailable()) {
+        DOM.storageStatus.textContent = '❌ 不可用'; DOM.storageStatus.style.color = 'var(--red)'; return;
+      }
+      try {
+        const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_HISTORY) || '[]');
+        if (!history.length) {
+          DOM.historyContent.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">尚無分析紀錄</div>
+              <p>分析照片後會保存紀錄在這裡</p>
+            </div>
+          `;
+          return;
+        }
+        DOM.historyContent.innerHTML = history.map(item => `
+          <div class="history-item">
+            <div class="history-item-content">
+              <div class="history-item-date">${item.date}</div>
+              <div class="history-item-summary">${item.summary || `${item.violations.length} 項違規`}</div>
+            </div>
+            <div class="history-item-meta">${item.violations.length} 項<br>${item.estimated_max ? formatCurrency(item.estimated_max) : '無法計算'}</div>
+          </div>
+        `).join('');
+      } catch (err) { console.error('Failed to load history:', err); }
+    }
+
+    function setupCalculator() {
+      DOM.addCalcBtn.addEventListener('click', () => {
+        const type = DOM.violationType.value.trim();
+        const amount = parseFloat(DOM.fineAmount.value) || 0;
+        if (!type || amount <= 0) { showAlert('請輸入有效的違規類型和罰款金額', 'warning'); return; }
+        state.calcItems.push({ id: Date.now(), type, amount });
+        DOM.violationType.value = '';
+        DOM.fineAmount.value = '';
+        updateCalculator();
+      });
+    }
+
+    function updateCalculator() {
+      if (!state.calcItems.length) { DOM.calcList.style.display = 'none'; return; }
+      DOM.calcList.style.display = 'block';
+      DOM.calcItems.innerHTML = state.calcItems.map(item => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border:1px solid var(--line); border-radius:6px; margin-bottom:8px;">
+          <div>
+            <div style="font-weight:600; color:var(--ink);">${item.type}</div>
+            <div style="font-size:12px; color:var(--muted);">${formatCurrency(item.amount)}</div>
+          </div>
+          <button class="btn btn-danger btn-small" onclick="removeCalcItem(${item.id})">删除</button>
+        </div>
+      `).join('');
+      const total = state.calcItems.reduce((sum, item) => sum + item.amount, 0);
+      DOM.calcTotal.textContent = total.toLocaleString('zh-Hant');
+    }
+
+    window.removeCalcItem = function(id) {
+      state.calcItems = state.calcItems.filter(item => item.id !== id);
+      updateCalculator();
+    };
+
+    function setupDownload() {
+      DOM.downloadTxt.addEventListener('click', () => {
+        if (!state.lastResult) return;
+        let text = 'RoadLens AI - 違規分析報告\n' + '='.repeat(50) + '\n\n';
+        text += `日期: ${formatDate()}\n`;
+        text += `摘要: ${state.lastResult.summary}\n\n`;
+        state.lastResult.violations.forEach((v, i) => {
+          text += `${i + 1}. ${v.violation}\n`;
+          text += `   信心度: ${v.confidence}%\n`;
+          text += `   證據: ${v.evidence}\n`;
+          text += `   理由: ${v.reason}\n`;
+          if (v.fine_min && v.fine_max) text += `   預估罰款: ${formatCurrency(v.fine_min)} ~ ${formatCurrency(v.fine_max)}\n`;
+          text += '\n';
+        });
+        downloadFile(text, 'roadlens-report.txt', 'text/plain');
+      });
+
+      DOM.downloadJson.addEventListener('click', () => {
+        if (!state.lastResult) return;
+        downloadFile(JSON.stringify(state.lastResult, null, 2), 'roadlens-report.json', 'application/json');
+      });
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        DOM.swStatus.textContent = '❌ 不支援'; DOM.swStatus.style.color = 'var(--red)'; return;
+      }
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        DOM.swStatus.textContent = '✓ 已啟用'; DOM.swStatus.style.color = 'var(--green)';
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          if (reg.installing) {
+            reg.installing.addEventListener('statechange', () => {
+              if (reg.installing.state === 'installed' && navigator.serviceWorker.controller) reg.installing.postMessage({ type: 'SKIP_WAITING' });
+            });
+          }
+        });
+      } catch { DOM.swStatus.textContent = '⚠️ 失敗'; DOM.swStatus.style.color = 'var(--amber)'; }
+    }
+
+    function init() {
+      setupFileUpload();
+      setupCalculator();
+      setupDownload();
+      DOM.analyzeBtn.addEventListener('click', analyzeImages);
+      DOM.clearSelectionBtn.addEventListener('click', clearSelection);
+      DOM.resetResultBtn.addEventListener('click', resetResult);
+      DOM.clearHistoryBtn.addEventListener('click', () => {
+        if (confirm('確定要清除所有歷史紀錄嗎？')) {
+          localStorage.removeItem(CONFIG.STORAGE_HISTORY);
+          loadHistory();
+          showAlert('歷史紀錄已清除', 'success');
+        }
+      });
+      loadHistory();
+      registerServiceWorker();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('Service Worker updated, reloading...');
+        window.location.reload();
+      });
+    }
+  </script>
 </body>
 </html>
