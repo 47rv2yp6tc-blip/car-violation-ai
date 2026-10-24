@@ -1,4 +1,71 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1" viewBox="0 0 1 1" aria-hidden="true" focusable="false">
-  <title>Unused placeholder</title>
-  <desc>Placeholder asset left intentionally blank to avoid runtime mascot usage.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Lensy mascot</title>
+  <desc id="desc">A friendly blue robot mascot for RoadLens AI.</desc>
+  <defs>
+    <linearGradient id="bodyGrad" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5fbff"/>
+      <stop offset="100%" stop-color="#dfeef8"/>
+    </linearGradient>
+    <linearGradient id="headGrad" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#eaf4fb"/>
+    </linearGradient>
+    <linearGradient id="eyeGrad" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f2b52"/>
+      <stop offset="100%" stop-color="#0a1d39"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#1b4a96" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#softShadow)">
+    <ellipse cx="120" cy="208" rx="56" ry="16" fill="#d7e7f5" opacity="0.75"/>
+
+    <g>
+      <path d="M58 90c0-34 27-61 62-61s62 27 62 61v31c0 29-23 52-52 52H110c-29 0-52-23-52-52V90Z" fill="url(#headGrad)" stroke="#0c3f7f" stroke-width="4"/>
+      <path d="M72 84c0-23 18-41 41-41h14c23 0 41 18 41 41v9H72v-9Z" fill="url(#headGrad)" stroke="#0c3f7f" stroke-width="4"/>
+
+      <g>
+        <circle cx="95" cy="97" r="15" fill="#1e5fb8"/>
+        <circle cx="95" cy="97" r="8" fill="url(#eyeGrad)"/>
+        <circle cx="95" cy="97" r="3.5" fill="#7ae9ff"/>
+
+        <circle cx="145" cy="97" r="15" fill="#1e5fb8"/>
+        <circle cx="145" cy="97" r="8" fill="url(#eyeGrad)"/>
+        <circle cx="145" cy="97" r="3.5" fill="#7ae9ff"/>
+      </g>
+
+      <path d="M92 120c8 10 16 15 28 15s20-5 28-15" fill="none" stroke="#0f2b52" stroke-width="4" stroke-linecap="round"/>
+      <path d="M110 128c4 7 9 10 10 10s6-3 10-10" fill="none" stroke="#0f2b52" stroke-width="4" stroke-linecap="round"/>
+
+      <g>
+        <path d="M74 146h15v18c0 7-6 13-13 13h-7c-7 0-13-6-13-13v-8c0-6 5-11 11-11h7Z" fill="#f5fbff" stroke="#0c3f7f" stroke-width="4"/>
+        <path d="M147 146h15v18c0 7-6 13-13 13h-7c-7 0-13-6-13-13v-8c0-6 5-11 11-11h7Z" fill="#f5fbff" stroke="#0c3f7f" stroke-width="4"/>
+      </g>
+    </g>
+
+    <g>
+      <path d="M66 156c0-16 12-29 28-29h52c16 0 28 13 28 29v24c0 18-15 34-34 34H100c-19 0-34-16-34-34v-24Z" fill="url(#bodyGrad)" stroke="#0c3f7f" stroke-width="4"/>
+      <path d="M88 164h64v38c0 11-9 20-20 20H108c-11 0-20-9-20-20v-38Z" fill="#f8fbff" stroke="#0c3f7f" stroke-width="4"/>
+
+      <g>
+        <ellipse cx="99" cy="178" rx="9" ry="9" fill="#0b3d7a"/>
+        <ellipse cx="141" cy="178" rx="9" ry="9" fill="#0b3d7a"/>
+      </g>
+
+      <path d="M120 167v30" stroke="#0c3f7f" stroke-width="4" stroke-linecap="round"/>
+      <path d="M109 167h22" stroke="#0c3f7f" stroke-width="4" stroke-linecap="round"/>
+
+      <g>
+        <path d="M74 166c-9 13-16 26-22 41" fill="none" stroke="#0c3f7f" stroke-width="8" stroke-linecap="round"/>
+        <path d="M166 166c9 13 16 26 22 41" fill="none" stroke="#0c3f7f" stroke-width="8" stroke-linecap="round"/>
+      </g>
+
+      <g>
+        <path d="M88 146c0-15 12-27 27-27h10c15 0 27 12 27 27v10H88v-10Z" fill="#1aa9d6" opacity="0.14"/>
+        <path d="M76 117h88" stroke="#0c3f7f" stroke-width="3" stroke-linecap="round" opacity="0.35"/>
+      </g>
+    </g>
+  </g>
 </svg>
