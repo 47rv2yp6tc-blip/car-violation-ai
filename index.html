@@ -3,448 +3,552 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#1769e0">
-  <meta name="description" content="RoadLens AI - AI 汽車違規影像分析與罰鍰預估系統">
+  <meta name="theme-color" content="#0b1d3c">
+  <meta name="description" content="RoadLens AI - AI 交通違規影像分析與證據導向判定系統">
   <title>RoadLens AI｜交通違規影像分析</title>
   <style>
     :root {
-      --ink: #10233f;
-      --muted: #65758b;
-      --line: #dce5ed;
-      --bg: #f6f9fc;
-      --card: rgba(255, 255, 255, 0.9);
-      --blue: #1769e0;
-      --blue-soft: #dfeeff;
-      --blue-deep: #0f3b8c;
-      --red: #c7444d;
-      --amber: #a66300;
-      --green: #147d67;
-      --shadow: 0 18px 42px rgba(22, 54, 101, 0.12);
-      --radius: 16px;
-      --border-soft: rgba(23, 105, 224, 0.12);
+      --bg: #071a2f;
+      --bg-soft: #0d2445;
+      --bg-elevated: rgba(11, 28, 52, 0.72);
+      --panel: rgba(14, 31, 55, 0.78);
+      --panel-strong: rgba(9, 25, 46, 0.9);
+      --card: rgba(17, 35, 63, 0.78);
+      --card-strong: rgba(11, 25, 46, 0.96);
+      --line: rgba(118, 181, 255, 0.22);
+      --line-soft: rgba(142, 196, 255, 0.15);
+      --text: #ecf5ff;
+      --muted: #a7b8cf;
+      --blue: #59b8ff;
+      --cyan: #6ee7ff;
+      --cyan-deep: #28d7d7;
+      --navy: #0d1f3c;
+      --silver: #d8ebff;
+      --green: #48d59a;
+      --amber: #f6c66e;
+      --red: #ff7a7a;
+      --shadow: 0 18px 40px rgba(3, 10, 24, 0.42);
+      --radius: 20px;
+      --content-width: 1180px;
     }
 
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans TC", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(138, 196, 255, 0.28), transparent 24%),
-        radial-gradient(circle at bottom right, rgba(20, 95, 201, 0.14), transparent 25%),
-        linear-gradient(180deg, #f3f8ff 0%, #edf5ff 32%, #f6f9fc 100%);
-      color: var(--ink);
-      line-height: 1.5;
+      margin: 0;
       min-height: 100vh;
-      position: relative;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(89, 184, 255, 0.22), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(40, 215, 215, 0.12), transparent 20%),
+        linear-gradient(180deg, #06172d 0%, #0a1d34 28%, #0d233d 100%);
+      color: var(--text);
+      line-height: 1.6;
       overflow-x: hidden;
     }
 
-    body::before,
-    body::after {
+    body::before {
       content: "";
       position: fixed;
       inset: 0;
+      background-image:
+        linear-gradient(rgba(121, 180, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(121, 180, 255, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,0.9), transparent 82%);
       pointer-events: none;
       z-index: 0;
     }
 
-    body::before {
-      background-image:
-        linear-gradient(rgba(23, 105, 224, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23, 105, 224, 0.05) 1px, transparent 1px);
-      background-size: 28px 28px;
-      mask-image: radial-gradient(circle at center, black 30%, transparent 100%);
-    }
-
     body::after {
-      inset: 6% 10% auto auto;
+      content: "";
+      position: fixed;
+      right: -80px;
+      top: 80px;
       width: 420px;
       height: 420px;
-      background: rgba(94, 153, 255, 0.08);
-      border: 1px solid rgba(23, 105, 224, 0.08);
-      border-radius: 32% 68% 55% 45% / 47% 42% 58% 53%;
-      transform: rotate(-12deg);
+      border-radius: 32% 68% 52% 48% / 44% 48% 52% 56%;
+      background: rgba(89, 184, 255, 0.08);
+      border: 1px solid rgba(89, 184, 255, 0.12);
+      transform: rotate(20deg);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    button, input { font: inherit; }
+    button {
+      border: none;
+      background: none;
+      color: inherit;
+      cursor: pointer;
     }
 
     .shell {
       position: relative;
       z-index: 1;
-      max-width: 1160px;
+      max-width: var(--content-width);
       margin: 0 auto;
-      padding: 24px 16px 64px;
+      padding: 20px 16px 64px;
     }
 
-    header {
+    .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
-      padding: 18px 8px 18px;
-      border-bottom: 1px solid rgba(23, 105, 224, 0.12);
-      margin-bottom: 16px;
+      padding: 12px 6px 18px;
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
     }
 
     .brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: 0.02em;
+      min-width: 0;
     }
 
     .brand-mark {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--blue), #1ea7d3);
-      color: #fff;
-      font-weight: 800;
-      box-shadow: 0 12px 20px rgba(23, 105, 224, 0.25);
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      box-shadow: 0 12px 25px rgba(74, 183, 255, 0.28);
+      font-weight: 900;
+      color: var(--navy);
     }
 
-    .brand-sub {
-      display: block;
-      margin-top: 2px;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600;
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .brand-text strong {
+      font-size: 1.05rem;
       letter-spacing: 0.04em;
     }
 
-    .badge,
-    .status-tag {
+    .brand-text small {
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 9px 14px;
       border-radius: 999px;
-      font-size: 12px;
+      background: rgba(89, 184, 255, 0.08);
+      border: 1px solid var(--line);
+      color: var(--silver);
       font-weight: 700;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
-    .badge {
-      background: rgba(23, 105, 224, 0.09);
-      color: var(--blue);
-      border: 1px solid rgba(23, 105, 224, 0.14);
+    .status-pill::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      box-shadow: 0 0 0 5px rgba(89, 184, 255, 0.12);
     }
 
     .hero {
+      padding: 62px 0 32px;
       text-align: center;
-      padding: 42px 0 20px;
       animation: fadeInUp 0.7s ease both;
     }
 
     .eyebrow {
       margin: 0 0 18px;
-      color: var(--blue);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 12px;
+      color: var(--cyan);
       font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
     }
 
     h1 {
-      margin: 0 0 16px;
-      font-size: clamp(34px, 6vw, 64px);
-      line-height: 1.08;
-      letter-spacing: -0.05em;
+      margin: 0;
+      font-size: clamp(2.7rem, 6vw, 5.4rem);
+      line-height: 1.04;
+      letter-spacing: -0.06em;
       font-weight: 900;
+      text-wrap: balance;
     }
 
-    .title-highlight {
-      background: linear-gradient(120deg, var(--blue), #18a7d2 52%, #1a7ae6 100%);
+    .title-accent {
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 45%, #dff7ff 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
 
     .lead {
-      margin: 0 auto 20px;
-      max-width: 720px;
+      max-width: 750px;
+      margin: 20px auto 0;
       color: var(--muted);
-      font-size: 16px;
-      line-height: 1.75;
+      font-size: 1.06rem;
+      line-height: 1.8;
     }
 
-    .cta-row,
     .tag-row {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
       gap: 12px;
+      margin-top: 28px;
     }
 
-    .tag-row {
-      margin-bottom: 28px;
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(17, 35, 63, 0.7);
+      border: 1px solid var(--line-soft);
+      color: var(--silver);
+      font-size: 0.78rem;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
     }
 
-    .status-tag {
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid rgba(23, 105, 224, 0.1);
-      color: var(--ink);
-      box-shadow: 0 6px 16px rgba(18, 67, 119, 0.06);
-    }
-
-    .status-dot {
+    .tag::before {
+      content: "";
       width: 8px;
       height: 8px;
-      background: linear-gradient(135deg, #4ab7ff, #147d67);
       border-radius: 50%;
-      box-shadow: 0 0 0 5px rgba(74, 183, 255, 0.12);
+      background: radial-gradient(circle at 30% 30%, #dffaff, var(--cyan) 45%, rgba(89,184,255,0.7) 100%);
+      box-shadow: 0 0 0 4px rgba(80, 201, 255, 0.09);
+    }
+
+    .cta-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 30px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 12px 20px;
-      border-radius: 12px;
+      min-height: 50px;
+      padding: 0 22px;
+      border-radius: 14px;
       font-weight: 800;
-      font-size: 14px;
+      letter-spacing: 0.01em;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
       border: 1px solid transparent;
-      background: var(--blue);
-      color: white;
-      box-shadow: 0 14px 28px rgba(23, 105, 224, 0.2);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-      cursor: pointer;
     }
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 18px 30px rgba(23, 105, 224, 0.22);
-      background: #0f5fe0;
     }
 
     .btn:active {
       transform: translateY(0);
-      box-shadow: 0 8px 18px rgba(23, 105, 224, 0.18);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 55%, #3b8cff 100%);
+      color: var(--navy);
+      box-shadow: 0 16px 26px rgba(89, 184, 255, 0.24);
     }
 
     .btn.secondary {
-      background: rgba(255, 255, 255, 0.8);
-      color: var(--ink);
-      border-color: rgba(23, 105, 224, 0.12);
-      box-shadow: none;
-    }
-
-    .btn.secondary:hover {
-      background: #ffffff;
-      border-color: rgba(23, 105, 224, 0.18);
+      background: rgba(13, 34, 62, 0.8);
+      border-color: rgba(113, 190, 255, 0.2);
+      color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
     .dashboard {
+      margin-top: 22px;
       display: grid;
       grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
-      gap: 24px;
+      gap: 22px;
       align-items: start;
     }
 
     .panel,
-    .signal-card,
-    .feature-card {
-      background: var(--card);
-      border: 1px solid rgba(23, 105, 224, 0.1);
+    .metric-card,
+    .feature-card,
+    .step-card {
+      background: linear-gradient(180deg, rgba(15, 35, 63, 0.9), rgba(11, 25, 46, 0.92));
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
     }
 
     .panel {
       padding: 22px;
-      animation: fadeInUp 0.8s ease both;
+      animation: fadeInUp 0.75s ease both;
     }
 
-    .drop-zone {
+    .upload-zone {
       position: relative;
-      border: 1.5px dashed rgba(23, 105, 224, 0.22);
-      background: linear-gradient(135deg, rgba(232, 242, 255, 0.9), rgba(255, 255, 255, 0.85));
-      border-radius: 18px;
+      border: 1.5px dashed rgba(113, 190, 255, 0.32);
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(18, 42, 77, 0.9), rgba(13, 22, 42, 0.78));
       padding: 28px 20px;
       text-align: center;
-      transition: 0.2s ease;
       overflow: hidden;
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      min-height: 180px;
+      display: grid;
+      place-items: center;
     }
 
-    .drop-zone::before {
+    .upload-zone::before {
       content: "";
       position: absolute;
-      inset: 10px;
+      inset: 12px;
       border-radius: 14px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.28), rgba(23,105,224,0.05));
-      border: 1px solid rgba(23, 105, 224, 0.08);
+      background: linear-gradient(135deg, rgba(89, 184, 255, 0.08), rgba(110, 231, 255, 0.03));
+      border: 1px solid rgba(113, 190, 255, 0.08);
       pointer-events: none;
     }
 
-    .drop-zone:hover {
-      border-color: rgba(23, 105, 224, 0.45);
-      background: linear-gradient(135deg, rgba(232, 242, 255, 1), rgba(244, 249, 255, 0.92));
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: rgba(110, 231, 255, 0.6);
+      box-shadow: 0 0 0 4px rgba(89, 184, 255, 0.08);
       transform: translateY(-1px);
     }
 
-    .drop-zone > * {
+    .upload-content {
       position: relative;
       z-index: 1;
     }
 
-    .drop-icon {
-      font-size: 42px;
+    .upload-icon {
+      font-size: 2.4rem;
       margin-bottom: 8px;
-      opacity: 0.9;
+      filter: drop-shadow(0 4px 10px rgba(89,184,255,0.25));
     }
 
-    .drop-text {
-      color: var(--muted);
-      font-size: 14px;
+    .upload-text {
       margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
     }
 
-    .upload-buttons {
+    .button-row {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
       margin-top: 18px;
     }
 
-    .upload-btn {
+    .action-btn {
       flex: 1 1 180px;
-      min-height: 46px;
-      border-radius: 12px;
-      background: var(--blue);
-      color: white;
-      font-weight: 800;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 12px 20px rgba(23, 105, 224, 0.16);
-      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-    }
-
-    .upload-btn:hover {
-      transform: translateY(-2px);
-      background: #0f5fe0;
-      box-shadow: 0 16px 22px rgba(23, 105, 224, 0.22);
-    }
-
-    .upload-btn:active {
-      transform: translateY(0);
-    }
-
-    .upload-btn.secondary {
-      background: white;
-      color: var(--ink);
-      border: 1px solid rgba(23, 105, 224, 0.14);
-      box-shadow: none;
-    }
-
-    .upload-btn.secondary:hover {
-      background: #f9fbff;
-    }
-
-    .summary-card {
-      margin-top: 18px;
-      background: linear-gradient(135deg, rgba(23,105,224,0.06), rgba(23,105,224,0.01));
-      border: 1px solid rgba(23,105,224,0.12);
+      min-height: 48px;
       border-radius: 14px;
-      padding: 16px;
+      font-weight: 800;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      border: 1px solid rgba(113, 190, 255, 0.2);
     }
 
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
+    .action-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: var(--navy);
+      box-shadow: 0 14px 24px rgba(89, 184, 255, 0.18);
+    }
+
+    .action-btn.secondary {
+      background: rgba(15, 30, 54, 0.8);
+      color: var(--text);
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .preview-wrap {
+      margin-top: 18px;
+      display: none;
+      background: rgba(11, 25, 46, 0.66);
+      border: 1px solid rgba(113, 190, 255, 0.14);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .preview-wrap.visible {
+      display: block;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 6px 0;
     }
 
-    .summary-row strong { color: var(--ink); }
+    .preview-box {
+      background: rgba(7, 18, 31, 0.72);
+      border: 1px solid rgba(113, 190, 255, 0.12);
+      border-radius: 12px;
+      padding: 8px;
+      min-height: 110px;
+    }
 
-    .meta-panel {
+    .preview-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      background: rgba(123, 166, 215, 0.08);
+    }
+
+    .preview-meta {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .status-box {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(113, 190, 255, 0.14);
+      background: rgba(17, 35, 63, 0.75);
+      color: var(--silver);
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-box.info { border-color: rgba(89,184,255,0.18); color: var(--silver); }
+    .status-box.success { border-color: rgba(72,213,154,0.22); color: #c5f6dc; }
+    .status-box.error { border-color: rgba(255,122,122,0.22); color: #ffd6d6; }
+    .status-box.loading { border-color: rgba(110,231,255,0.28); color: var(--cyan); }
+
+    .insight-panel {
       display: grid;
       gap: 18px;
     }
 
-    .signal-card {
-      background: linear-gradient(180deg, rgba(248, 251, 255, 0.86), rgba(255,255,255,0.92));
+    .metric-card {
       padding: 18px;
-      animation: fadeInUp 0.9s ease both;
+      animation: fadeInUp 0.8s ease both;
     }
 
-    .signal-title {
-      margin: 0 0 10px;
-      font-size: 13px;
+    .metric-title {
+      margin: 0 0 14px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
       color: var(--muted);
       font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
     }
 
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
-      margin-top: 8px;
     }
 
     .metric {
-      background: rgba(255,255,255,0.82);
-      border: 1px solid rgba(23, 105, 224, 0.08);
-      border-radius: 12px;
-      padding: 12px 10px;
+      background: rgba(8, 22, 38, 0.8);
+      border: 1px solid rgba(113,190,255,0.12);
+      border-radius: 14px;
+      padding: 12px 10px 10px;
       text-align: center;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
     }
 
-    .metric-value {
+    .metric strong {
       display: block;
-      color: var(--blue);
-      font-size: 20px;
+      color: var(--cyan);
+      font-size: 1.25rem;
       font-weight: 900;
-      line-height: 1.2;
+      letter-spacing: -0.04em;
     }
 
-    .metric-label {
+    .metric span {
       display: block;
-      color: var(--muted);
-      font-size: 11px;
       margin-top: 4px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .mini-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(113,190,255,0.08);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .mini-row:last-child {
+      border-bottom: none;
+    }
+
+    .mini-row strong {
+      color: var(--text);
+      font-weight: 700;
     }
 
     .feature-strip {
-      margin-top: 28px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
+      margin-top: 32px;
     }
 
     .feature-card {
-      padding: 18px 16px;
+      padding: 22px 18px 20px;
       text-align: center;
-      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246, 250, 255, 0.94));
-      animation: fadeInUp 1s ease both;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      animation: fadeInUp 0.85s ease both;
     }
 
     .feature-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 22px 40px rgba(22, 54, 101, 0.13);
+      box-shadow: 0 22px 42px rgba(3, 10, 24, 0.38);
     }
 
     .feature-icon {
-      width: 52px;
-      height: 52px;
+      width: 56px;
+      height: 56px;
       margin: 0 auto 12px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(23,105,224,0.1), rgba(30,167,211,0.08));
+      border-radius: 16px;
       display: grid;
       place-items: center;
-      color: var(--blue);
-      border: 1px solid rgba(23, 105, 224, 0.08);
+      background: linear-gradient(135deg, rgba(89,184,255,0.12), rgba(110,231,255,0.08));
+      border: 1px solid rgba(113,190,255,0.12);
+      color: var(--cyan);
     }
 
     .feature-icon svg {
@@ -459,14 +563,147 @@
 
     .feature-card h3 {
       margin: 0 0 8px;
-      font-size: 18px;
+      font-size: 1.02rem;
     }
 
     .feature-card p {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.7;
+      font-size: 0.9rem;
+    }
+
+    .workflow-grid {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .step-card {
+      padding: 22px 18px;
+      animation: fadeInUp 0.9s ease both;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(89,184,255,0.18), rgba(110,231,255,0.12));
+      border: 1px solid rgba(113,190,255,0.2);
+      color: var(--cyan);
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .step-card h3 {
+      margin: 0 0 8px;
+      font-size: 1.02rem;
+    }
+
+    .step-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .result-panel {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(9, 25, 46, 0.92), rgba(12, 31, 56, 0.92));
+      border: 1px solid rgba(113,190,255,0.12);
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.8s ease both;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: rgba(89,184,255,0.08);
+      border: 1px solid rgba(113,190,255,0.18);
+      color: var(--silver);
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .result-content {
+      display: grid;
+      gap: 14px;
+    }
+
+    .result-card {
+      background: rgba(12, 26, 46, 0.8);
+      border: 1px solid rgba(113,190,255,0.1);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .result-card h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .result-card p,
+    .result-card li {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.92rem;
+    }
+
+    .result-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .confidence-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(72,213,154,0.08);
+      border: 1px solid rgba(72,213,154,0.18);
+      color: #d3ffe9;
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .confidence-pill.warn {
+      background: rgba(246,198,110,0.08);
+      border-color: rgba(246,198,110,0.18);
+      color: #ffebbb;
+    }
+
+    .confidence-pill.alert {
+      background: rgba(255,122,122,0.08);
+      border-color: rgba(255,122,122,0.18);
+      color: #ffd7d7;
     }
 
     @keyframes fadeInUp {
@@ -480,81 +717,130 @@
       }
     }
 
-    @media (max-width: 900px) {
-      .dashboard { grid-template-columns: 1fr; }
-      .feature-strip { grid-template-columns: 1fr; }
+    @media (max-width: 980px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+      .feature-strip,
+      .workflow-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .button-row,
+      .cta-row {
+        flex-direction: column;
+      }
+      .btn,
+      .action-btn {
+        width: 100%;
+      }
+      .metric-grid,
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero {
+        padding-top: 50px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <header>
-      <div class="brand" aria-label="RoadLens AI 品牌" role="img">
+    <header class="topbar" aria-label="RoadLens AI 頂部">
+      <div class="brand" aria-label="RoadLens AI 品牌">
         <span class="brand-mark">R</span>
-        <div>
-          <span>RoadLens AI</span>
-          <span class="brand-sub">AI 道路違規辨識</span>
+        <div class="brand-text">
+          <strong>RoadLens AI</strong>
+          <small>Road Vision Intelligence</small>
         </div>
       </div>
-      <div class="badge">AI 交通影像分析</div>
+      <span class="status-pill">AI Traffic Analysis</span>
     </header>
 
     <main>
       <section class="hero" aria-labelledby="hero-title">
         <p class="eyebrow">RoadLens AI</p>
-        <h1 id="hero-title">智慧交通分析，<span class="title-highlight">更快判定</span></h1>
-        <p class="lead">上傳影像後，系統即進行違規檢測、風險分級與判斷摘要，讓你在最短時間內掌握車輛狀況與風險資訊。</p>
-        <div class="tag-row" aria-label="產品分類標籤">
-          <span class="status-tag"><span class="status-dot"></span>證據優先</span>
-          <span class="status-tag"><span class="status-dot"></span>法規比對</span>
-          <span class="status-tag"><span class="status-dot"></span>風險評估</span>
+        <h1 id="hero-title">Professional <span class="title-accent">Traffic Violation Detection</span></h1>
+        <p class="lead">
+          以證據優先方式辨識道路影像中的違規情況，支援影像上傳、法規比對、風險判定與結果摘要，讓電腦視覺判斷更透明、更可檢閱。
+        </p>
+
+        <div class="tag-row" aria-label="功能分類標籤">
+          <span class="tag">Evidence-first</span>
+          <span class="tag">Vision Review</span>
+          <span class="tag">Rule Matching</span>
+          <span class="tag">Human Check</span>
         </div>
+
         <div class="cta-row">
-          <button class="btn" type="button">開始分析</button>
-          <button class="btn secondary" type="button">查看流程</button>
+          <button class="btn primary" id="heroStartBtn" type="button">開始分析</button>
+          <button class="btn secondary" id="viewFlowBtn" type="button">查看流程</button>
         </div>
       </section>
 
-      <section class="dashboard" aria-label="分析工作區">
+      <section class="dashboard" id="analysis-panel" aria-label="分析主區域">
         <div class="panel">
-          <div class="drop-zone" aria-label="上傳影像區域">
-            <div class="drop-icon" aria-hidden="true">⬆</div>
-            <p class="drop-text">拖曳影像至此，或選擇檔案進行 AI 分析</p>
+          <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="上傳影像區域">
+            <div class="upload-content">
+              <div class="upload-icon" aria-hidden="true">📸</div>
+              <p class="upload-text">拖曳影像或點擊上傳，支援 JPG、PNG、WEBP</p>
+            </div>
           </div>
-          <div class="upload-buttons">
-            <button class="upload-btn" type="button">選擇檔案</button>
-            <button class="upload-btn secondary" type="button">範例影像</button>
-          </div>
-          <div class="summary-card" aria-live="polite">
-            <div class="summary-row"><span>待分析影像</span><strong>0 筆</strong></div>
-            <div class="summary-row"><span>檢測完成</span><strong>12 / 24</strong></div>
-            <div class="summary-row"><span>判定結果</span><strong>待更新</strong></div>
-          </div>
-        </div>
 
-        <aside class="meta-panel" aria-label="分析概覽">
-          <div class="signal-card">
-            <h2 class="signal-title">檢測概覽</h2>
-            <div class="metric-grid">
-              <div class="metric">
-                <span class="metric-value">24</span>
-                <span class="metric-label">影像數</span>
+          <div class="button-row">
+            <button class="action-btn primary" id="chooseFileBtn" type="button">選擇檔案</button>
+            <button class="action-btn secondary" id="sampleImageBtn" type="button">範例影像</button>
+            <button class="action-btn primary" id="startAnalysisBtn" type="button">開始分析</button>
+          </div>
+
+          <input class="hidden-input" id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" />
+
+          <div class="preview-wrap" id="previewWrap" aria-live="polite">
+            <div class="preview-grid">
+              <div class="preview-box">
+                <img class="preview-image" id="previewImage" alt="圖片預覽" />
               </div>
-              <div class="metric">
-                <span class="metric-value">91%</span>
-                <span class="metric-label">辨識率</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">3.2s</span>
-                <span class="metric-label">平均處理</span>
+              <div class="preview-box">
+                <div class="preview-meta" id="previewMeta">尚未選擇影像</div>
               </div>
             </div>
           </div>
-          <div class="signal-card">
-            <h2 class="signal-title">系統狀態</h2>
-            <div class="summary-row"><span>影像來源</span><strong>本地 / 雲端</strong></div>
-            <div class="summary-row"><span>模型狀態</span><strong>正常</strong></div>
-            <div class="summary-row"><span>更新頻率</span><strong>即時</strong></div>
+
+          <div class="status-box info" id="statusBox">等待上傳或選擇範例影像。</div>
+        </div>
+
+        <aside class="insight-panel" aria-label="系統概覽">
+          <div class="metric-card">
+            <h2 class="metric-title">檢測概覽</h2>
+            <div class="metric-grid">
+              <div class="metric">
+                <strong>24</strong>
+                <span>影像</span>
+              </div>
+              <div class="metric">
+                <strong>示範</strong>
+                <span>辨識率</span>
+              </div>
+              <div class="metric">
+                <strong>示範</strong>
+                <span>處理時間</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <h2 class="metric-title">系統狀態</h2>
+            <div class="mini-list">
+              <div class="mini-row"><span>影像來源</span><strong>本地 / 替代樣本</strong></div>
+              <div class="mini-row"><span>結果分類</span><strong>證據優先</strong></div>
+              <div class="mini-row"><span>人工確認</span><strong>必要時</strong></div>
+            </div>
           </div>
         </aside>
       </section>
@@ -565,24 +851,350 @@
             <svg viewBox="0 0 24 24"><path d="M4 18V7.5A1.5 1.5 0 0 1 5.5 6H18.5A1.5 1.5 0 0 1 20 7.5V18"/><path d="M8.5 10h7M8.5 14h7M7 6l2-2m8 2-2-2"/></svg>
           </div>
           <h3>規則檢測</h3>
-          <p>快速比對交通法規與影像內容，協助判定違規類型。</p>
+          <p>比對交通法規與影像內容，協助整理違規類型與關鍵證據。</p>
         </article>
+
         <article class="feature-card">
           <div class="feature-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M5 18V9m7 9V5m7 13v-8"/><path d="M3 18h18"/></svg>
           </div>
           <h3>風險分類</h3>
-          <p>依照照片資訊與斷點判定，高效區分高、中、低風險案例。</p>
+          <p>判定高、中、低風險情境，讓判讀重點更容易聚焦與檢閱。</p>
         </article>
+
         <article class="feature-card">
           <div class="feature-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M7 12.5 10.2 15.8 17 9"/><path d="M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
           </div>
           <h3>結果摘要</h3>
-          <p>整理出關鍵判定與建議，讓交通監理流程更簡潔且清楚。</p>
+          <p>整理違規判斷、證據描述、罰鍰估算與人工確認需求。</p>
         </article>
+      </section>
+
+      <section class="workflow-grid" id="how-it-works" aria-label="操作流程">
+        <article class="step-card">
+          <div class="step-number">01</div>
+          <h3>上傳影像</h3>
+          <p>上傳道路、車輛或標誌照片，支援傳統相機與手機端拍攝。</p>
+        </article>
+        <article class="step-card">
+          <div class="step-number">02</div>
+          <h3>進行辨識</h3>
+          <p>AI 依照畫面內容提取車輛行為、標誌與可見證據，建立檢視基礎。</p>
+        </article>
+        <article class="step-card">
+          <div class="step-number">03</div>
+          <h3>確認結果</h3>
+          <p>檢視違規類型、法規依據與罰鍰範圍，必要時延後人工確認。</p>
+        </article>
+      </section>
+
+      <section class="result-panel" aria-live="polite">
+        <div class="result-header">
+          <h2>分析結果</h2>
+          <span class="result-badge">待判定</span>
+        </div>
+        <div class="result-content" id="resultContent">
+          <div class="result-card">
+            <h3>目前狀態</h3>
+            <p>尚未執行影像分析，請選擇照片或使用範例影像開始檢測。</p>
+          </div>
+        </div>
       </section>
     </main>
   </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const state = {
+        activeImage: '',
+        activeName: '未命名影像',
+        activeMime: 'image/png'
+      };
+
+      const els = {
+        uploadZone: document.getElementById('uploadZone'),
+        fileInput: document.getElementById('fileInput'),
+        chooseFileBtn: document.getElementById('chooseFileBtn'),
+        sampleImageBtn: document.getElementById('sampleImageBtn'),
+        startAnalysisBtn: document.getElementById('startAnalysisBtn'),
+        heroStartBtn: document.getElementById('heroStartBtn'),
+        viewFlowBtn: document.getElementById('viewFlowBtn'),
+        previewWrap: document.getElementById('previewWrap'),
+        previewImage: document.getElementById('previewImage'),
+        previewMeta: document.getElementById('previewMeta'),
+        statusBox: document.getElementById('statusBox'),
+        resultContent: document.getElementById('resultContent'),
+        resultBadge: document.querySelector('.result-badge')
+      };
+
+      function setStatus(message, tone) {
+        els.statusBox.textContent = message;
+        els.statusBox.className = 'status-box ' + (tone || 'info');
+      }
+
+      function buildSampleTrafficImage() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1600;
+        canvas.height = 900;
+        const ctx = canvas.getContext('2d');
+
+        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        sky.addColorStop(0, '#89d7ff');
+        sky.addColorStop(0.42, '#5fa5ff');
+        sky.addColorStop(1, '#dfeeff');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.16)';
+        for (let i = 0; i < 18; i += 1) {
+          const x = (i * 120 + 60) % canvas.width;
+          const y = 50 + (i % 6) * 90;
+          ctx.fillRect(x, y, 120, 2);
+        }
+
+        ctx.fillStyle = '#7c919f';
+        ctx.fillRect(0, 540, canvas.width, 360);
+        ctx.fillStyle = '#4b5a68';
+        for (let i = 0; i < 8; i += 1) {
+          const y = 560 + i * 28;
+          ctx.fillRect(0, y, canvas.width, 3);
+        }
+
+        ctx.strokeStyle = '#f5f7fa';
+        ctx.lineWidth = 10;
+        ctx.setLineDash([40, 28]);
+        ctx.beginPath();
+        ctx.moveTo(0, 650);
+        ctx.lineTo(canvas.width, 650);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#1e2f46';
+        ctx.fillRect(210, 520, 340, 150);
+        ctx.fillRect(1060, 500, 300, 170);
+        ctx.fillStyle = '#0e233b';
+        ctx.fillRect(250, 470, 260, 65);
+        ctx.fillRect(1090, 445, 235, 80);
+
+        ctx.fillStyle = '#eaf6ff';
+        ctx.fillRect(332, 457, 90, 25);
+        ctx.fillRect(1172, 433, 72, 24);
+
+        ctx.fillStyle = '#ffbb66';
+        ctx.fillRect(450, 390, 140, 65);
+        ctx.fillRect(1240, 360, 110, 65);
+
+        ctx.fillStyle = '#87d0ff';
+        ctx.fillRect(690, 330, 220, 120);
+        ctx.fillRect(845, 300, 110, 80);
+
+        ctx.fillStyle = '#0d2038';
+        ctx.fillRect(780, 420, 88, 64);
+        ctx.fillStyle = '#dfeeff';
+        ctx.fillRect(720, 280, 140, 30);
+
+        return canvas.toDataURL('image/png');
+      }
+
+      function renderPreview(dataUrl, fileName, mimeType) {
+        els.previewWrap.classList.add('visible');
+        els.previewImage.src = dataUrl;
+        els.previewMeta.innerHTML = `
+          <strong>檔案名稱:</strong> ${fileName}<br>
+          <strong>格式:</strong> ${mimeType || 'image/png'}<br>
+          <strong>狀態:</strong> 已載入，可立即進行分析
+        `;
+      }
+
+      function setImageFromFile(file) {
+        if (!file || !file.type.startsWith('image/')) {
+          setStatus('請選擇 JPG、PNG 或 WEBP 圖片。', 'error');
+          return false;
+        }
+
+        if (file.size > 15 * 1024 * 1024) {
+          setStatus('圖片過大，請壓縮後再試（建議 15 MB 內）。', 'error');
+          return false;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const dataUrl = event.target.result;
+          state.activeImage = dataUrl;
+          state.activeName = file.name;
+          state.activeMime = file.type;
+          renderPreview(dataUrl, file.name, file.type);
+          setStatus('圖片已載入，可開始分析。', 'success');
+        };
+        reader.readAsDataURL(file);
+        return true;
+      }
+
+      function handleFileSelection(list) {
+        const file = list && list[0];
+        if (!file) return;
+        setImageFromFile(file);
+      }
+
+      function renderResultCard(title, html) {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `<h3>${title}</h3>${html}`;
+        els.resultContent.innerHTML = '';
+        els.resultContent.appendChild(card);
+      }
+
+      function displayAnalysisResult(result) {
+        const violations = Array.isArray(result?.violations) ? result.violations : [];
+        const summary = result?.summary || '未提供判讀摘要。';
+        const total = result?.estimated_fine_min != null || result?.estimated_fine_max != null
+          ? `NT$ ${Number(result.estimated_fine_min || 0).toLocaleString()} - NT$ ${Number(result.estimated_fine_max || 0).toLocaleString()}`
+          : '待官方確認';
+
+        if (!violations.length) {
+          renderResultCard('分析結果', `
+            <p>${summary}</p>
+            <p>若影像不夠清晰或關鍵證據不足，系統會明確標示需要人工確認。</p>
+          `);
+          els.resultBadge.textContent = '待確認';
+          return;
+        }
+
+        const items = violations.map((item, index) => {
+          const confidence = Number(item?.confidence || 0);
+          const badgeClass = confidence >= 70 ? 'confidence-pill' : confidence >= 50 ? 'confidence-pill warn' : 'confidence-pill alert';
+          const certainty = item?.needs_human_review ? '需人工確認' : '已判斷';
+          const rule = item?.rule || '法規資料';
+          const fineMin = item?.fine_min != null ? Number(item.fine_min).toLocaleString() : '—';
+          const fineMax = item?.fine_max != null ? Number(item.fine_max).toLocaleString() : '—';
+          return `
+            <li>
+              <strong>${index + 1}. ${item.violation || '未知違規'}</strong><br>
+              <span class="${badgeClass}">${confidence}% AI 信心</span><br>
+              依據：${item.reason || '未提供'}<br>
+              證據：${item.evidence || '未提供'}<br>
+              法規：${rule}<br>
+              罰鍰：NT$ ${fineMin} - NT$ ${fineMax}<br>
+              狀態：${certainty}
+            </li>
+          `;
+        }).join('');
+
+        renderResultCard('違規偵測結果', `
+          <p>${summary}</p>
+          <p><strong>估算總額：</strong> ${total}</p>
+          <ul>${items}</ul>
+        `);
+        els.resultBadge.textContent = '已分析';
+      }
+
+      async function runAnalysis() {
+        if (!state.activeImage) {
+          setStatus('請先選擇照片或使用範例影像。', 'error');
+          return;
+        }
+
+        setStatus('AI 正在分析中，請稍候…', 'loading');
+
+        try {
+          const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              images: [state.activeImage],
+              mimeTypes: [state.activeMime]
+            })
+          });
+
+          const json = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            const msg = json?.error || '分析失敗，請稍後再試。';
+            throw new Error(msg);
+          }
+
+          setStatus('分析完成，結果已更新。', 'success');
+          displayAnalysisResult(json);
+        } catch (error) {
+          const msg = error?.message || '分析服務暫時無法完成，請稍後再試。';
+          setStatus(msg, 'error');
+          renderResultCard('分析錯誤', `<p>${msg}</p><p>請確認圖片格式、網路連線與分析服務設定。</p>`);
+          els.resultBadge.textContent = '錯誤';
+        }
+      }
+
+      function bindEvents() {
+        els.chooseFileBtn.addEventListener('click', function () {
+          els.fileInput.click();
+        });
+
+        els.fileInput.addEventListener('change', function (event) {
+          handleFileSelection(event.target.files);
+        });
+
+        els.sampleImageBtn.addEventListener('click', function () {
+          const sample = buildSampleTrafficImage();
+          state.activeImage = sample;
+          state.activeName = 'sample-road-scene.png';
+          state.activeMime = 'image/png';
+          renderPreview(sample, 'sample-road-scene.png', 'image/png');
+          setStatus('範例影像已載入，可開始分析。', 'success');
+        });
+
+        els.startAnalysisBtn.addEventListener('click', function () {
+          const target = document.getElementById('analysis-panel');
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          runAnalysis();
+        });
+
+        els.heroStartBtn.addEventListener('click', function () {
+          document.getElementById('analysis-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        els.viewFlowBtn.addEventListener('click', function () {
+          document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        els.uploadZone.addEventListener('click', function () {
+          els.fileInput.click();
+        });
+
+        els.uploadZone.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            els.fileInput.click();
+          }
+        });
+
+        ['dragenter', 'dragover'].forEach(function (eventName) {
+          els.uploadZone.addEventListener(eventName, function (event) {
+            event.preventDefault();
+            els.uploadZone.classList.add('dragover');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(function (eventName) {
+          els.uploadZone.addEventListener(eventName, function (event) {
+            event.preventDefault();
+            els.uploadZone.classList.remove('dragover');
+          });
+        });
+
+        els.uploadZone.addEventListener('drop', function (event) {
+          event.preventDefault();
+          els.uploadZone.classList.remove('dragover');
+          if (event.dataTransfer && event.dataTransfer.files) {
+            handleFileSelection(event.dataTransfer.files);
+          }
+        });
+      }
+
+      bindEvents();
+      setStatus('等待上傳或選擇範例影像。', 'info');
+    }());
+  </script>
 </body>
 </html>
