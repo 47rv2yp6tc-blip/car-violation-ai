@@ -5,7 +5,13 @@ const VISIT_SCRIPT = '<script src="/visit-counter.js" defer></script>';
 async function injectVisitCounter(response) {
   if (!response || !response.ok || !String(response.headers.get('content-type') || '').includes('text/html')) return response;
   const html = await response.text();
-  if (html.includes('/visit-counter.js')) return new Response(html, response);
+  if (html.includes('/visit-counter.js')) {
+    return new Response(html, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
   const updated = html.includes('</body>')
     ? html.replace('</body>', `${VISIT_SCRIPT}</body>`)
     : `${html}${VISIT_SCRIPT}`;
