@@ -48,7 +48,12 @@ function normalizeResult(parsed) {
     const violation = String(item?.violation || item?.violation_type || '無法從此照片確認');
     const contradictions = asStrings(item?.contradictions);
     const missingEvidence = asStrings(item?.missing_evidence);
+    const providedInformation = asStrings(item?.additionalInformation);
+    const additionalInformation = [...new Set([...missingEvidence, ...providedInformation])].slice(0, 10);
     const uncertain = Boolean(item?.uncertain) || confidence < 50 || violation.includes('無法');
+    if (uncertain && additionalInformation.length === 0) {
+      additionalInformation.push('目前證據不足以確認，請人工檢視並考慮補充更清晰的照片或相關道路環境資訊。');
+    }
     const ruleCalculation = calculateFine(violation);
 
     return {
@@ -61,7 +66,7 @@ function normalizeResult(parsed) {
       evidence: String(item?.evidence || '未提供'),
       evidence_location: String(item?.evidence_location || '未提供'),
       reason: String(item?.reason || '未提供'),
-      additionalInformation: asStrings(item?.additionalInformation || missingEvidence),
+      additionalInformation,
       missing_evidence: missingEvidence,
       evidenceCompleteness: String(item?.evidenceCompleteness || '未提供'),
       contradictions,
