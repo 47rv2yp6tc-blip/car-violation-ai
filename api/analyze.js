@@ -38,19 +38,21 @@ function parseModelJson(text) {
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
-function normalizeResult(parsed) {
+export function normalizeResult(parsed) {
   if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.violations)) {
     throw new Error('模型回傳格式不符合預期');
   }
 
   const violations = parsed.violations.map((item) => {
-    const confidence = clampConfidence(item?.confidence);
+    const missingEvidence = asStrings(item?.missing_evidence).map((text) => text.trim()).filter(Boolean);
+    // Missing evidence is a deterministic reason to withhold a confident result,
+    // even if the model mistakenly returns a high confidence or uncertain=false.
+    const confidence = Math.min(clampConfidence(item?.confidence), missingEvidence.length ? 49 : 100);
     const violation = String(item?.violation || item?.violation_type || '無法從此照片確認');
     const contradictions = asStrings(item?.contradictions);
-    const missingEvidence = asStrings(item?.missing_evidence);
     const providedInformation = asStrings(item?.additionalInformation);
     const additionalInformation = [...new Set([...missingEvidence, ...providedInformation])].slice(0, 10);
-    const uncertain = Boolean(item?.uncertain) || confidence < 50 || violation.includes('無法');
+    const uncertain = Boolean(item?.uncertain) || missingEvidence.length > 0 || confidence < 50 || violation.includes('無法');
     if (uncertain && additionalInformation.length === 0) {
       additionalInformation.push('目前證據不足以確認，請人工檢視並考慮補充更清晰的照片或相關道路環境資訊。');
     }
