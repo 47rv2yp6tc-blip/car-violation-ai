@@ -1,41 +1,41 @@
-/* Mobile app layer for RoadLens AI. Loaded only as an additive stylesheet. */
+/* iPhone-first responsive app layer; keep desktop page styling unchanged. */
 :root {
   --app-safe-top: env(safe-area-inset-top, 0px);
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --app-nav-height: 64px;
-  --app-nav-space: calc(var(--app-nav-height) + 18px + var(--app-safe-bottom));
+  --app-nav-content-height: 64px;
+  --app-nav-total-height: calc(var(--app-nav-content-height) + 12px + var(--app-safe-bottom));
 }
 
-/* Reserve space for the fixed nav so the last controls remain above the home indicator. */
 @media (max-width: 768px) {
   html {
     min-height: 100%;
     scroll-padding-top: calc(var(--app-safe-top) + 12px);
-    scroll-padding-bottom: var(--app-nav-space);
+    scroll-padding-bottom: calc(var(--app-nav-total-height) + 18px);
     -webkit-text-size-adjust: 100%;
     overscroll-behavior-y: contain;
   }
 
-  body {
+  /* More specific than the legacy inline rules, avoiding duplicate padding. */
+  html body {
     min-height: 100vh;
     min-height: 100dvh;
-    padding-bottom: var(--app-nav-space);
+    padding-bottom: calc(var(--app-nav-total-height) + 18px) !important;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .shell {
-    padding-top: calc(12px + var(--app-safe-top));
-    padding-bottom: 20px;
+  html body .shell {
+    padding: calc(12px + var(--app-safe-top)) 12px 20px;
   }
 
-  .app-bottom-nav {
+  /* Keep the fixed navigation above the iPhone home indicator and Android gesture bar. */
+  html body .app-bottom-nav {
     position: fixed;
     inset-inline: 0;
     bottom: 0;
     z-index: 100;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    min-height: var(--app-nav-height);
+    min-height: var(--app-nav-total-height);
     padding: 6px 10px calc(6px + var(--app-safe-bottom));
     background: rgba(6, 23, 45, 0.96);
     border-top: 1px solid rgba(118, 181, 255, 0.2);
@@ -44,7 +44,7 @@
     backdrop-filter: blur(18px);
   }
 
-  .app-bottom-nav a {
+  html body .app-bottom-nav a {
     display: flex;
     min-width: 0;
     min-height: 48px;
@@ -61,96 +61,57 @@
     touch-action: manipulation;
   }
 
-  .app-bottom-nav a[aria-current="page"],
-  .app-bottom-nav a.active {
+  html body .app-bottom-nav a[aria-current="page"],
+  html body .app-bottom-nav a.active {
     color: #ecf5ff;
     background: rgba(89, 184, 255, 0.13);
   }
 
-  .app-bottom-nav .nav-icon {
+  html body .app-bottom-nav .nav-icon {
     display: block;
     font-size: 1.15rem;
     line-height: 1;
   }
 
-  .app-settings,
-  .history-panel {
-    margin-top: 20px;
-    padding: 18px 14px;
-    border: 1px solid rgba(118, 181, 255, 0.2);
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(15, 35, 63, 0.92), rgba(11, 25, 46, 0.94));
-  }
-
-  .history-list,
-  .settings-list {
-    display: grid;
-    gap: 12px;
-    margin-top: 12px;
-  }
-
-  .history-item,
-  .settings-row {
-    min-width: 0;
-    padding: 14px;
-    border: 1px solid rgba(118, 181, 255, 0.13);
-    border-radius: 15px;
-    background: rgba(7, 18, 31, 0.56);
-  }
-
-  .history-item strong,
-  .settings-row strong {
-    display: block;
-    overflow-wrap: anywhere;
-  }
-
-  .history-item small,
-  .settings-row span {
-    color: #a7b8cf;
-  }
-
-  .settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  /* Large, comfortable targets on touch devices; no hover-only behavior. */
-  button,
-  .btn,
-  .action-btn,
-  input[type="button"],
-  input[type="submit"] {
+  /* Comfortable tap targets and image sizing on compact phones. */
+  html body button,
+  html body .btn,
+  html body .action-btn,
+  html body input[type="button"],
+  html body input[type="submit"] {
     min-height: 48px;
     touch-action: manipulation;
   }
 
-  .upload-zone {
+  html body .upload-zone {
     min-height: 150px;
     touch-action: manipulation;
   }
 
-  .preview-image {
+  html body .preview-image {
     height: min(42vh, 320px);
     object-fit: contain;
   }
-}
 
-/* Give the iOS status-bar/Dynamic Island area a matching, uninterrupted app surface. */
-@media (max-width: 768px) and (display-mode: standalone) {
-  html,
-  body {
-    background-color: #06172d;
+  html body .dashboard,
+  html body .feature-strip,
+  html body .workflow-grid,
+  html body .metric-grid,
+  html body .preview-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .topbar {
+  html body .topbar {
     padding-top: 8px;
   }
 }
 
 @media (min-width: 769px) {
-  .app-bottom-nav {
+  html body {
+    padding-bottom: 0 !important;
+  }
+
+  html body .app-bottom-nav {
     display: none;
   }
 }
