@@ -37,6 +37,17 @@ function setVisitCookie(res, id) {
   res.setHeader('Set-Cookie', `${COOKIE_NAME}=${id}; Path=/; Max-Age=${TTL_SECONDS}; HttpOnly; SameSite=Lax${secure}`);
 }
 
+function parseRedisTotal(payload) {
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.result) || payload.result.length < 2) {
+    throw new Error('Unexpected Redis response');
+  }
+  const total = Number(payload.result[1]);
+  if (!Number.isSafeInteger(total) || total < 0) {
+    throw new Error('Invalid visit count');
+  }
+  return total;
+}
+
 async function incrementOnce(bucketKey) {
   const response = await fetch(`${REDIS_URL.replace(/\/$/, '')}/`, {
     method: 'POST',
@@ -49,12 +60,7 @@ async function incrementOnce(bucketKey) {
 
   if (!response.ok) throw new Error('Redis request failed');
   const payload = await response.json();
-  if (payload?.error || !Array.isArray(payload?.result) || payload.result.length < 2) {
-    throw new Error('Unexpected Redis response');
-  }
-  const total = Number(payload.result[1]);
-  if (!Number.isSafeInteger(total) || total < 0) throw new Error('Invalid visit count');
-  return total;
+  return parseRedisTotal(payload);
 }
 
 export default async function handler(req, res) {
@@ -68,7 +74,8 @@ export default async function handler(req, res) {
   if (isNewVisitId) visitId = randomUUID();
 
   try {
-    const total = await incrementOnce(`roadlens:visits:dedupe:${hashVisitId(visitId)}`);
+    const hashKey = `roadlens:visits:dedupe:${hashVisitId(visitId)}`;
+    const total = await incrementOnce(hashKey);
     if (isNewVisitId) setVisitCookie(res, visitId);
     return jsonResponse(res, 200, { total });
   } catch (error) {
