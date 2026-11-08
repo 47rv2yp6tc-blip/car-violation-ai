@@ -31,6 +31,8 @@
         --red: #ff7a7a;
         --shadow: 0 18px 40px rgba(3, 10, 24, 0.42);
         --radius: 20px;
+        --app-bottom-nav-height: 88px;
+        --safe-bottom: max(12px, env(safe-area-inset-bottom));
       }
 
       * { box-sizing: border-box; }
@@ -39,6 +41,7 @@
         margin: 0;
         min-height: 100vh;
         min-height: 100dvh;
+        padding-bottom: calc(var(--app-bottom-nav-height) + var(--safe-bottom));
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
         background:
           radial-gradient(circle at top left, rgba(89, 184, 255, 0.22), transparent 22%),
@@ -47,6 +50,12 @@
         color: var(--text);
         line-height: 1.6;
         overflow-x: hidden;
+      }
+
+      @media (min-width: 769px) {
+        body {
+          padding-bottom: 0;
+        }
       }
 
       body::before {
@@ -76,7 +85,7 @@
       .shell {
         position: relative;
         z-index: 1;
-        max-width: 1180px;
+        max-width: var(--content-width);
         margin: 0 auto;
         padding: 20px 16px 64px;
       }
@@ -135,7 +144,7 @@
         border-radius: 999px;
         background: rgba(89, 184, 255, 0.08);
         border: 1px solid var(--line);
-        color: #dfeeff;
+        color: var(--silver);
         font-weight: 700;
         font-size: 0.75rem;
         letter-spacing: 0.06em;
@@ -171,6 +180,7 @@
         line-height: 1.04;
         letter-spacing: -0.06em;
         font-weight: 900;
+        text-wrap: balance;
       }
 
       .title-accent {
@@ -190,8 +200,8 @@
 
       .tag-row {
         display: flex;
-        flex-wrap: wrap;
         justify-content: center;
+        flex-wrap: wrap;
         gap: 12px;
         margin-top: 28px;
       }
@@ -204,9 +214,10 @@
         border-radius: 999px;
         background: rgba(17, 35, 63, 0.7);
         border: 1px solid var(--line-soft);
-        color: #dfeeff;
+        color: var(--silver);
         font-size: 0.78rem;
         font-weight: 700;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
       }
 
       .tag::before {
@@ -235,8 +246,12 @@
         border-radius: 14px;
         font-weight: 800;
         letter-spacing: 0.01em;
+        transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
         border: 1px solid transparent;
       }
+
+      .btn:hover { transform: translateY(-2px); }
+      .btn:active { transform: translateY(0); }
 
       .btn.primary {
         background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 55%, #3b8cff 100%);
@@ -248,6 +263,7 @@
         background: rgba(13, 34, 62, 0.8);
         border-color: rgba(113, 190, 255, 0.2);
         color: var(--text);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
       }
 
       .dashboard {
@@ -255,6 +271,7 @@
         display: grid;
         grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
         gap: 22px;
+        align-items: start;
       }
 
       .panel, .metric-card, .feature-card, .step-card {
@@ -262,6 +279,7 @@
         border: 1px solid var(--line);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
       }
 
       .panel {
@@ -276,6 +294,7 @@
         padding: 28px 20px;
         text-align: center;
         overflow: hidden;
+        transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
         min-height: 180px;
         display: grid;
         place-items: center;
@@ -288,23 +307,19 @@
         border-radius: 14px;
         background: linear-gradient(135deg, rgba(89, 184, 255, 0.08), rgba(110, 231, 255, 0.03));
         border: 1px solid rgba(113, 190, 255, 0.08);
+        pointer-events: none;
       }
 
-      .upload-content {
-        position: relative;
-        z-index: 1;
+      .upload-zone:hover,
+      .upload-zone.dragover {
+        border-color: rgba(110, 231, 255, 0.6);
+        box-shadow: 0 0 0 4px rgba(89, 184, 255, 0.08);
+        transform: translateY(-1px);
       }
 
-      .upload-icon {
-        font-size: 2.4rem;
-        margin-bottom: 8px;
-      }
-
-      .upload-text {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.96rem;
-      }
+      .upload-content { position: relative; z-index: 1; }
+      .upload-icon { font-size: 2.4rem; margin-bottom: 8px; filter: drop-shadow(0 4px 10px rgba(89,184,255,0.25)); }
+      .upload-text { margin: 0; color: var(--muted); font-size: 0.96rem; }
 
       .button-row {
         display: flex;
@@ -318,15 +333,16 @@
         min-height: 48px;
         border-radius: 14px;
         font-weight: 800;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
         border: 1px solid rgba(113, 190, 255, 0.2);
       }
 
+      .action-btn:hover { transform: translateY(-2px); }
       .action-btn.primary {
         background: linear-gradient(135deg, var(--cyan), var(--blue));
         color: var(--navy);
         box-shadow: 0 14px 24px rgba(89, 184, 255, 0.18);
       }
-
       .action-btn.secondary {
         background: rgba(15, 30, 54, 0.8);
         color: var(--text);
@@ -342,14 +358,8 @@
         border-radius: 16px;
         padding: 12px;
       }
-
       .preview-wrap.visible { display: block; }
-      .preview-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
+      .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .preview-box {
         background: rgba(7, 18, 31, 0.72);
         border: 1px solid rgba(113, 190, 255, 0.12);
@@ -357,15 +367,14 @@
         padding: 8px;
         min-height: 110px;
       }
-
       .preview-image {
         width: 100%;
         height: 160px;
         object-fit: cover;
         border-radius: 10px;
         display: block;
+        background: rgba(123, 166, 215, 0.08);
       }
-
       .preview-meta {
         margin-top: 8px;
         color: var(--muted);
@@ -385,21 +394,13 @@
         display: flex;
         align-items: center;
       }
-
       .status-box.info { border-color: rgba(89,184,255,0.18); color: var(--silver); }
       .status-box.success { border-color: rgba(72,213,154,0.22); color: #c5f6dc; }
       .status-box.error { border-color: rgba(255,122,122,0.22); color: #ffd6d6; }
       .status-box.loading { border-color: rgba(110,231,255,0.28); color: var(--cyan); }
 
-      .insight-panel {
-        display: grid;
-        gap: 18px;
-      }
-
-      .metric-card {
-        padding: 18px;
-      }
-
+      .insight-panel { display: grid; gap: 18px; }
+      .metric-card { padding: 18px; }
       .metric-title {
         margin: 0 0 14px;
         font-size: 0.76rem;
@@ -408,13 +409,11 @@
         color: var(--muted);
         font-weight: 800;
       }
-
       .metric-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
       }
-
       .metric {
         background: rgba(8, 22, 38, 0.8);
         border: 1px solid rgba(113,190,255,0.12);
@@ -422,7 +421,6 @@
         padding: 12px 10px 10px;
         text-align: center;
       }
-
       .metric strong {
         display: block;
         color: var(--cyan);
@@ -430,7 +428,6 @@
         font-weight: 900;
         letter-spacing: -0.04em;
       }
-
       .metric span {
         display: block;
         margin-top: 4px;
@@ -440,18 +437,30 @@
         letter-spacing: 0.08em;
       }
 
+      .mini-list { display: grid; gap: 10px; margin-top: 10px; }
+      .mini-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(113,190,255,0.08);
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+      .mini-row:last-child { border-bottom: none; }
+      .mini-row strong { color: var(--text); font-weight: 700; }
+
       .feature-strip {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 18px;
         margin-top: 32px;
       }
-
       .feature-card {
         padding: 22px 18px 20px;
         text-align: center;
       }
-
       .feature-icon {
         width: 56px;
         height: 56px;
@@ -463,7 +472,6 @@
         border: 1px solid rgba(113,190,255,0.12);
         color: var(--cyan);
       }
-
       .feature-icon svg {
         width: 24px;
         height: 24px;
@@ -473,18 +481,8 @@
         stroke-linecap: round;
         stroke-linejoin: round;
       }
-
-      .feature-card h3 {
-        margin: 0 0 8px;
-        font-size: 1.02rem;
-      }
-
-      .feature-card p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.7;
-        font-size: 0.9rem;
-      }
+      .feature-card h3 { margin: 0 0 8px; font-size: 1.02rem; }
+      .feature-card p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 0.9rem; }
 
       .workflow-grid {
         margin-top: 28px;
@@ -492,11 +490,7 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 18px;
       }
-
-      .step-card {
-        padding: 22px 18px;
-      }
-
+      .step-card { padding: 22px 18px; }
       .step-number {
         display: inline-flex;
         align-items: center;
@@ -510,6 +504,8 @@
         font-weight: 900;
         margin-bottom: 12px;
       }
+      .step-card h3 { margin: 0 0 8px; font-size: 1.02rem; }
+      .step-card p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
 
       .result-panel {
         margin-top: 18px;
@@ -519,7 +515,6 @@
         border: 1px solid rgba(113,190,255,0.12);
         box-shadow: var(--shadow);
       }
-
       .result-header {
         display: flex;
         justify-content: space-between;
@@ -528,9 +523,7 @@
         margin-bottom: 12px;
         flex-wrap: wrap;
       }
-
       .result-header h2 { margin: 0; font-size: 1.3rem; }
-
       .result-badge {
         display: inline-flex;
         align-items: center;
@@ -545,56 +538,54 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
       }
-
+      .result-content { display: grid; gap: 14px; }
       .result-card {
         background: rgba(12, 26, 46, 0.8);
         border: 1px solid rgba(113,190,255,0.1);
         border-radius: 14px;
         padding: 14px 16px;
       }
+      .result-card h3 { margin: 0 0 10px; font-size: 1rem; }
+      .result-card p, .result-card li { color: var(--muted); line-height: 1.7; font-size: 0.92rem; }
+      .result-card ul { margin: 0; padding-left: 18px; }
 
-      .result-card h3 {
-        margin: 0 0 10px;
-        font-size: 1rem;
-      }
-
-      .result-card p,
-      .result-card li {
-        color: var(--muted);
-        line-height: 1.7;
-        font-size: 0.92rem;
-      }
-
-      .result-card ul {
-        margin: 0;
-        padding-left: 18px;
-      }
-
-      .confidence-pill {
-        display: inline-flex;
-        align-items: center;
+      .app-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: rgba(72,213,154,0.08);
-        border: 1px solid rgba(72,213,154,0.18);
-        color: #d3ffe9;
-        font-size: 0.74rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(6, 23, 45, 0.96);
+        border-top: 1px solid rgba(121, 181, 255, 0.18);
+        box-shadow: 0 -12px 24px rgba(2, 8, 17, 0.32);
+        backdrop-filter: blur(16px);
       }
-
-      .confidence-pill.warn {
-        background: rgba(246,198,110,0.08);
-        border-color: rgba(246,198,110,0.18);
-        color: #ffebbb;
+      .app-bottom-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-height: 64px;
+        border-radius: 14px;
+        color: #a9bedc;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: 0.02em;
       }
-
-      .confidence-pill.alert {
-        background: rgba(255,122,122,0.08);
-        border-color: rgba(255,122,122,0.18);
-        color: #ffd7d7;
+      .app-bottom-nav a.active {
+        background: rgba(89, 184, 255, 0.12);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px rgba(89, 184, 255, 0.12);
+      }
+      .app-bottom-nav .nav-icon {
+        font-size: 1.2rem;
+        line-height: 1;
       }
 
       @media (max-width: 980px) {
@@ -602,15 +593,25 @@
         .feature-strip, .workflow-grid { grid-template-columns: 1fr; }
       }
 
-      @media (max-width: 560px) {
+      @media (max-width: 768px) {
+        .shell {
+          padding-left: 12px;
+          padding-right: 12px;
+          padding-bottom: 42px;
+        }
         .topbar {
           align-items: flex-start;
           flex-direction: column;
+          gap: 12px;
         }
-        .button-row, .cta-row { flex-direction: column; }
+        .cta-row, .button-row { flex-direction: column; }
         .btn, .action-btn { width: 100%; }
         .metric-grid, .preview-grid { grid-template-columns: 1fr; }
-        .hero { padding-top: 50px; }
+        .hero { padding-top: 46px; }
+      }
+
+      @media (min-width: 769px) {
+        .app-bottom-nav { display: none; }
       }
     </style>
   </head>
@@ -631,24 +632,20 @@
         <section class="hero" aria-labelledby="hero-title">
           <p class="eyebrow">RoadLens AI</p>
           <h1 id="hero-title">Professional <span class="title-accent">Traffic Violation Detection</span></h1>
-          <p class="lead">
-            以證據優先方式辨識道路影像中的違規情況，支援影像上傳、法規比對、風險判定與結果摘要，讓電腦視覺判斷更透明、更可檢閱。
-          </p>
-
+          <p class="lead">以證據優先方式辨識道路影像中的違規情況，支援影像上傳、法規比對、風險判定與結果摘要，讓電腦視覺判斷更透明、更可檢閱。</p>
           <div class="tag-row" aria-label="功能分類標籤">
             <span class="tag">Evidence-first</span>
             <span class="tag">Vision Review</span>
             <span class="tag">Rule Matching</span>
             <span class="tag">Human Check</span>
           </div>
-
           <div class="cta-row">
-            <button class="btn primary" id="heroStartBtn" type="button">開始分析</button>
-            <button class="btn secondary" id="viewFlowBtn" type="button">查看流程</button>
+            <button class="btn primary" type="button">開始分析</button>
+            <button class="btn secondary" type="button">查看流程</button>
           </div>
         </section>
 
-        <section class="dashboard" id="analysis-panel" aria-label="分析主區域">
+        <section class="dashboard" aria-label="分析主區域">
           <div class="panel">
             <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="上傳影像區域">
               <div class="upload-content">
@@ -726,7 +723,7 @@
           </article>
         </section>
 
-        <section class="workflow-grid" id="how-it-works" aria-label="操作流程">
+        <section class="workflow-grid" aria-label="操作流程">
           <article class="step-card">
             <div class="step-number">01</div>
             <h3>上傳影像</h3>
@@ -760,227 +757,105 @@
     </div>
 
     <nav class="app-bottom-nav" aria-label="底部導覽">
-      <a href="#analysis-panel" aria-current="page"><span class="nav-icon">🏠</span><span>首頁</span></a>
-      <a href="#analysis-panel"><span class="nav-icon">📸</span><span>分析</span></a>
-      <a href="#how-it-works"><span class="nav-icon">📘</span><span>流程</span></a>
-      <a href="#resultContent"><span class="nav-icon">🧾</span><span>結果</span></a>
+      <a href="#" class="active" aria-current="page"><span class="nav-icon">🏠</span><span>首頁</span></a>
+      <a href="#"><span class="nav-icon">📸</span><span>分析</span></a>
+      <a href="#"><span class="nav-icon">📘</span><span>流程</span></a>
+      <a href="#"><span class="nav-icon">🧾</span><span>結果</span></a>
     </nav>
 
     <script>
       (function () {
         'use strict';
-
-        const state = {
-          activeImage: '',
-          activeName: '未命名影像',
-          activeMime: 'image/png',
-        };
-
-        const els = {
-          uploadZone: document.getElementById('uploadZone'),
-          fileInput: document.getElementById('fileInput'),
-          chooseFileBtn: document.getElementById('chooseFileBtn'),
-          sampleImageBtn: document.getElementById('sampleImageBtn'),
-          startAnalysisBtn: document.getElementById('startAnalysisBtn'),
-          heroStartBtn: document.getElementById('heroStartBtn'),
-          viewFlowBtn: document.getElementById('viewFlowBtn'),
-          previewWrap: document.getElementById('previewWrap'),
-          previewImage: document.getElementById('previewImage'),
-          previewMeta: document.getElementById('previewMeta'),
-          statusBox: document.getElementById('statusBox'),
-          resultContent: document.getElementById('resultContent'),
-          resultBadge: document.querySelector('.result-badge')
-        };
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewWrap = document.getElementById('previewWrap');
+        const previewImage = document.getElementById('previewImage');
+        const previewMeta = document.getElementById('previewMeta');
+        const statusBox = document.getElementById('statusBox');
 
         function setStatus(message, tone) {
-          els.statusBox.textContent = message;
-          els.statusBox.className = 'status-box ' + (tone || 'info');
+          statusBox.textContent = message;
+          statusBox.className = 'status-box ' + (tone || 'info');
         }
 
-        function renderResultCard(title, body, badgeText, tone) {
-          const card = document.createElement('div');
-          card.className = 'result-card';
-          card.innerHTML = `
-            <h3>${title}</h3>
-            <p>${body}</p>
-          `;
-          els.resultContent.innerHTML = '';
-          els.resultContent.appendChild(card);
-
-          if (badgeText) {
-            els.resultBadge.textContent = badgeText;
-          }
-          if (tone) {
-            els.resultBadge.className = 'result-badge ' + tone;
-          } else {
-            els.resultBadge.className = 'result-badge';
-          }
-        }
-
-        function buildSampleTrafficImage() {
-          const canvas = document.createElement('canvas');
-          canvas.width = 1600;
-          canvas.height = 900;
-          const ctx = canvas.getContext('2d');
-
-          const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-          sky.addColorStop(0, '#89d7ff');
-          sky.addColorStop(0.42, '#5fa5ff');
-          sky.addColorStop(1, '#dfeeff');
-          ctx.fillStyle = sky;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          ctx.fillStyle = 'rgba(255,255,255,0.16)';
-          for (let i = 0; i < 18; i += 1) {
-            const x = (i * 120 + 60) % canvas.width;
-            const y = 50 + (i % 6) * 90;
-            ctx.fillRect(x, y, 120, 2);
-          }
-
-          ctx.fillStyle = '#7c919f';
-          ctx.fillRect(0, 540, canvas.width, 360);
-          ctx.fillStyle = '#4b5a68';
-          for (let i = 0; i < 8; i += 1) {
-            const y = 560 + i * 28;
-            ctx.fillRect(0, y, canvas.width, 3);
-          }
-
-          ctx.strokeStyle = '#f5f7fa';
-          ctx.lineWidth = 10;
-          ctx.setLineDash([40, 28]);
-          ctx.beginPath();
-          ctx.moveTo(0, 650);
-          ctx.lineTo(canvas.width, 650);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          ctx.fillStyle = '#1e2f46';
-          ctx.fillRect(210, 520, 340, 150);
-          ctx.fillRect(1060, 500, 300, 170);
-          ctx.fillStyle = '#0e233b';
-          ctx.fillRect(250, 470, 260, 65);
-          ctx.fillRect(1090, 445, 235, 80);
-
-          ctx.fillStyle = '#eaf6ff';
-          ctx.fillRect(332, 457, 90, 25);
-          ctx.fillRect(1172, 433, 72, 24);
-
-          ctx.fillStyle = '#ffbb66';
-          ctx.fillRect(450, 390, 140, 65);
-          ctx.fillRect(1240, 360, 110, 65);
-
-          ctx.fillStyle = '#87d0ff';
-          ctx.fillRect(690, 330, 220, 120);
-          ctx.fillRect(845, 300, 110, 80);
-
-          ctx.fillStyle = '#0d2038';
-          ctx.fillRect(780, 420, 88, 64);
-          ctx.fillStyle = '#dfeeff';
-          ctx.fillRect(720, 280, 140, 30);
-
-          return canvas.toDataURL('image/png');
-        }
-
-        function setPreview(url, name, mime) {
-          state.activeImage = url;
-          state.activeName = name || '未命名影像';
-          state.activeMime = mime || 'image/png';
-
-          els.previewImage.src = url;
-          els.previewMeta.innerHTML = `
-            <strong>檔名：</strong>${state.activeName}<br>
-            <strong>格式：</strong>${state.activeMime}<br>
-            <strong>狀態：</strong>已就緒，可開始分析
-          `;
-          els.previewWrap.classList.add('visible');
-        }
-
-        function handleFiles(fileList) {
-          if (!fileList || !fileList.length) return;
-          const file = fileList[0];
+        function handleFiles(list) {
+          if (!list || !list.length) return;
+          const file = list[0];
           const reader = new FileReader();
           reader.onload = function (event) {
-            setPreview(event.target.result, file.name, file.type || 'image/png');
+            previewImage.src = event.target.result;
+            previewMeta.innerHTML = '<strong>檔名：</strong>' + file.name + '<br><strong>格式：</strong>' + (file.type || 'image/png') + '<br><strong>狀態：</strong>已就緒';
+            previewWrap.classList.add('visible');
             setStatus('影像已載入，準備開始分析。', 'info');
           };
           reader.readAsDataURL(file);
         }
 
-        function simulateAnalysis() {
-          if (!state.activeImage) {
+        document.getElementById('chooseFileBtn').addEventListener('click', function () {
+          fileInput.click();
+        });
+
+        document.getElementById('sampleImageBtn').addEventListener('click', function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1200;
+          canvas.height = 800;
+          const ctx = canvas.getContext('2d');
+          const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          sky.addColorStop(0, '#8ad7ff');
+          sky.addColorStop(1, '#dfeeff');
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#7d8a96';
+          ctx.fillRect(0, 550, canvas.width, 250);
+          ctx.fillStyle = '#1d2d46';
+          ctx.fillRect(230, 500, 330, 150);
+          ctx.fillRect(760, 470, 300, 180);
+          previewImage.src = canvas.toDataURL('image/png');
+          previewMeta.innerHTML = '<strong>檔名：</strong>sample-traffic-scene.png<br><strong>格式：</strong>image/png<br><strong>狀態：</strong>範例影像已載入';
+          previewWrap.classList.add('visible');
+          setStatus('範例影像已載入。', 'info');
+        });
+
+        document.getElementById('startAnalysisBtn').addEventListener('click', function () {
+          if (!previewImage.src) {
             setStatus('請先上傳照片或選擇範例影像。', 'error');
             return;
           }
-
           setStatus('正在進行影像辨識與法規比對…', 'loading');
+        });
 
-          setTimeout(() => {
-            const confidence = 0.92;
-            const risk = confidence > 0.9 ? '高風險' : confidence > 0.7 ? '中風險' : '低風險';
-
-            renderResultCard(
-              '違規可能性判定',
-              `經初步影像檢視，系統判定本次影像具備較高的交通違規可能性。<br><br>` +
-              `- 風險等級：<span class="confidence-pill">${risk}</span><br>` +
-              `- 判定信心：${confidence.toFixed(2)}<br>` +
-              `- 證據重點：車輛動作、道路標線與可見標誌具一致性<br>` +
-              `- 建議處理：人工核對後再進行正式判定或補充影像` ,
-              '已判定',
-              'success'
-            );
-
-            setStatus('影像分析完成，請檢視結果卡片內容。', 'success');
-          }, 1100);
-        }
-
-        els.chooseFileBtn.addEventListener('click', () => els.fileInput.click());
-        els.uploadZone.addEventListener('click', () => els.fileInput.click());
-        els.uploadZone.addEventListener('keydown', (event) => {
+        uploadZone.addEventListener('click', function () {
+          fileInput.click();
+        });
+        uploadZone.addEventListener('keydown', function (event) {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            els.fileInput.click();
+            fileInput.click();
           }
         });
-        els.fileInput.addEventListener('change', (event) => handleFiles(event.target.files));
-        els.sampleImageBtn.addEventListener('click', () => {
-          const sample = buildSampleTrafficImage();
-          setPreview(sample, 'sample-traffic-scene.png', 'image/png');
-          setStatus('範例影像已載入，準備開始分析。', 'info');
-        });
-        els.startAnalysisBtn.addEventListener('click', simulateAnalysis);
-        els.heroStartBtn.addEventListener('click', () => {
-          document.getElementById('analysis-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-          setTimeout(() => {
-            if (!state.activeImage) {
-              setStatus('請先上傳照片或點選範例影像。', 'info');
-            }
-          }, 180);
-        });
-        els.viewFlowBtn.addEventListener('click', () => {
-          document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        fileInput.addEventListener('change', function (event) {
+          handleFiles(event.target.files);
         });
 
-        ['dragenter', 'dragover'].forEach(type => {
-          els.uploadZone.addEventListener(type, (event) => {
+        ['dragenter', 'dragover'].forEach(function (type) {
+          uploadZone.addEventListener(type, function (event) {
             event.preventDefault();
-            els.uploadZone.classList.add('dragover');
+            uploadZone.classList.add('dragover');
           });
         });
-
-        ['dragleave', 'drop'].forEach(type => {
-          els.uploadZone.addEventListener(type, (event) => {
+        ['dragleave', 'drop'].forEach(function (type) {
+          uploadZone.addEventListener(type, function (event) {
             event.preventDefault();
-            els.uploadZone.classList.remove('dragover');
+            uploadZone.classList.remove('dragover');
           });
         });
-
-        els.uploadZone.addEventListener('drop', (event) => {
+        uploadZone.addEventListener('drop', function (event) {
           handleFiles(event.dataTransfer.files);
         });
 
         if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register('./sw.js').catch(function () {});
           });
         }
       })();
