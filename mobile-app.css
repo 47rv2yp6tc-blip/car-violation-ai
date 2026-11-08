@@ -1,134 +1,152 @@
+/* Mobile app layer for RoadLens AI. Loaded only as an additive stylesheet. */
 :root {
-  --app-bg: #06172d;
-  --app-bg-2: #0d2445;
-  --app-panel: rgba(15, 35, 63, 0.92);
-  --app-line: rgba(121, 181, 255, 0.18);
-  --app-text: #edf6ff;
-  --app-muted: #a9bedc;
-  --app-primary: #6ee7ff;
-  --app-accent: #59b8ff;
-  --app-success: #48d59a;
-  --app-warning: #f6c66e;
-  --app-danger: #ff7a7a;
-  --app-bottom-nav-height: 88px;
-  --safe-bottom: max(12px, env(safe-area-inset-bottom));
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-nav-height: 64px;
+  --app-nav-space: calc(var(--app-nav-height) + 18px + var(--app-safe-bottom));
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* Reserve space for the fixed nav so the last controls remain above the home indicator. */
+@media (max-width: 768px) {
+  html {
+    min-height: 100%;
+    scroll-padding-top: calc(var(--app-safe-top) + 12px);
+    scroll-padding-bottom: var(--app-nav-space);
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: contain;
+  }
 
-body {
-  padding-bottom: calc(var(--app-bottom-nav-height) + var(--safe-bottom));
-}
-
-@media (min-width: 769px) {
   body {
-    padding-bottom: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: var(--app-nav-space);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .shell {
+    padding-top: calc(12px + var(--app-safe-top));
+    padding-bottom: 20px;
+  }
+
+  .app-bottom-nav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 100;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: var(--app-nav-height);
+    padding: 6px 10px calc(6px + var(--app-safe-bottom));
+    background: rgba(6, 23, 45, 0.96);
+    border-top: 1px solid rgba(118, 181, 255, 0.2);
+    box-shadow: 0 -8px 26px rgba(2, 8, 17, 0.3);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+
+  .app-bottom-nav a {
+    display: flex;
+    min-width: 0;
+    min-height: 48px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 12px;
+    color: #a7b8cf;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    touch-action: manipulation;
+  }
+
+  .app-bottom-nav a[aria-current="page"],
+  .app-bottom-nav a.active {
+    color: #ecf5ff;
+    background: rgba(89, 184, 255, 0.13);
+  }
+
+  .app-bottom-nav .nav-icon {
+    display: block;
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .app-settings,
+  .history-panel {
+    margin-top: 20px;
+    padding: 18px 14px;
+    border: 1px solid rgba(118, 181, 255, 0.2);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(15, 35, 63, 0.92), rgba(11, 25, 46, 0.94));
+  }
+
+  .history-list,
+  .settings-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .history-item,
+  .settings-row {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid rgba(118, 181, 255, 0.13);
+    border-radius: 15px;
+    background: rgba(7, 18, 31, 0.56);
+  }
+
+  .history-item strong,
+  .settings-row strong {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .history-item small,
+  .settings-row span {
+    color: #a7b8cf;
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  /* Large, comfortable targets on touch devices; no hover-only behavior. */
+  button,
+  .btn,
+  .action-btn,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .upload-zone {
+    min-height: 150px;
+    touch-action: manipulation;
+  }
+
+  .preview-image {
+    height: min(42vh, 320px);
+    object-fit: contain;
   }
 }
 
-.app-bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(6, 23, 45, 0.96);
-  border-top: 1px solid var(--app-line);
-  box-shadow: 0 -12px 24px rgba(2, 8, 17, 0.32);
-  backdrop-filter: blur(16px);
-}
+/* Give the iOS status-bar/Dynamic Island area a matching, uninterrupted app surface. */
+@media (max-width: 768px) and (display-mode: standalone) {
+  html,
+  body {
+    background-color: #06172d;
+  }
 
-.app-bottom-nav a {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 64px;
-  border-radius: 14px;
-  color: var(--app-muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-decoration: none;
-  letter-spacing: 0.02em;
-}
-
-.app-bottom-nav a.active {
-  background: rgba(89, 184, 255, 0.12);
-  color: var(--app-text);
-  box-shadow: inset 0 0 0 1px rgba(89, 184, 255, 0.12);
-}
-
-.app-bottom-nav .nav-icon {
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.app-settings,
-.history-panel {
-  margin-top: 24px;
-  padding: 18px 16px 16px;
-  border-radius: 20px;
-  border: 1px solid var(--app-line);
-  background: linear-gradient(180deg, rgba(15, 35, 63, 0.9), rgba(11, 25, 46, 0.92));
-  box-shadow: 0 18px 40px rgba(3, 10, 24, 0.32);
-}
-
-.history-list {
-  display: grid;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.history-item {
-  padding: 14px 14px 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(121, 181, 255, 0.12);
-  background: rgba(11, 25, 46, 0.72);
-}
-
-.history-item strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 1rem;
-}
-
-.history-item small {
-  display: block;
-  color: var(--app-muted);
-  margin-bottom: 6px;
-}
-
-.settings-list {
-  display: grid;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.settings-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(11, 25, 46, 0.72);
-  border: 1px solid rgba(121, 181, 255, 0.12);
-}
-
-.settings-row strong {
-  font-size: 0.96rem;
-}
-
-.settings-row span {
-  color: var(--app-muted);
-  font-size: 0.8rem;
+  .topbar {
+    padding-top: 8px;
+  }
 }
 
 @media (min-width: 769px) {
@@ -137,47 +155,17 @@ body {
   }
 }
 
-@media (max-width: 768px) {
-  .shell {
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-bottom: 42px;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 
-  .topbar {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .brand-mark {
-    width: 40px;
-    height: 40px;
-  }
-
-  .hero {
-    padding-top: 46px;
-  }
-
-  .cta-row,
-  .button-row {
-    flex-direction: column;
-  }
-
-  .btn,
-  .action-btn {
-    width: 100%;
-  }
-
-  .dashboard,
-  .feature-strip,
-  .workflow-grid,
-  .metric-grid,
-  .preview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .result-header {
-    align-items: flex-start;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
