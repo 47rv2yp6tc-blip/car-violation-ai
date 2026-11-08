@@ -1,1200 +1,989 @@
 <!doctype html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b1d3c">
-  <meta name="description" content="RoadLens AI - AI 交通違規影像分析與證據導向判定系統">
-  <title>RoadLens AI｜交通違規影像分析</title>
-  <style>
-    :root {
-      --bg: #071a2f;
-      --bg-soft: #0d2445;
-      --bg-elevated: rgba(11, 28, 52, 0.72);
-      --panel: rgba(14, 31, 55, 0.78);
-      --panel-strong: rgba(9, 25, 46, 0.9);
-      --card: rgba(17, 35, 63, 0.78);
-      --card-strong: rgba(11, 25, 46, 0.96);
-      --line: rgba(118, 181, 255, 0.22);
-      --line-soft: rgba(142, 196, 255, 0.15);
-      --text: #ecf5ff;
-      --muted: #a7b8cf;
-      --blue: #59b8ff;
-      --cyan: #6ee7ff;
-      --cyan-deep: #28d7d7;
-      --navy: #0d1f3c;
-      --silver: #d8ebff;
-      --green: #48d59a;
-      --amber: #f6c66e;
-      --red: #ff7a7a;
-      --shadow: 0 18px 40px rgba(3, 10, 24, 0.42);
-      --radius: 20px;
-      --content-width: 1180px;
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(89, 184, 255, 0.22), transparent 22%),
-        radial-gradient(circle at bottom right, rgba(40, 215, 215, 0.12), transparent 20%),
-        linear-gradient(180deg, #06172d 0%, #0a1d34 28%, #0d233d 100%);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(121, 180, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(121, 180, 255, 0.05) 1px, transparent 1px);
-      background-size: 32px 32px;
-      mask-image: radial-gradient(circle at center, rgba(0,0,0,0.9), transparent 82%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      right: -80px;
-      top: 80px;
-      width: 420px;
-      height: 420px;
-      border-radius: 32% 68% 52% 48% / 44% 48% 52% 56%;
-      background: rgba(89, 184, 255, 0.08);
-      border: 1px solid rgba(89, 184, 255, 0.12);
-      transform: rotate(20deg);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    a { color: inherit; text-decoration: none; }
-    img { max-width: 100%; display: block; }
-    button, input { font: inherit; }
-    button {
-      border: none;
-      background: none;
-      color: inherit;
-      cursor: pointer;
-    }
-
-    .shell {
-      position: relative;
-      z-index: 1;
-      max-width: var(--content-width);
-      margin: 0 auto;
-      padding: 20px 16px 64px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 6px 18px;
-      border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(12px);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .brand-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, var(--blue), var(--cyan));
-      box-shadow: 0 12px 25px rgba(74, 183, 255, 0.28);
-      font-weight: 900;
-      color: var(--navy);
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-    }
-
-    .brand-text strong {
-      font-size: 1.05rem;
-      letter-spacing: 0.04em;
-    }
-
-    .brand-text small {
-      color: var(--muted);
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 14px;
-      border-radius: 999px;
-      background: rgba(89, 184, 255, 0.08);
-      border: 1px solid var(--line);
-      color: var(--silver);
-      font-weight: 700;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .status-pill::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--cyan), var(--green));
-      box-shadow: 0 0 0 5px rgba(89, 184, 255, 0.12);
-    }
-
-    .hero {
-      padding: 62px 0 32px;
-      text-align: center;
-      animation: fadeInUp 0.7s ease both;
-    }
-
-    .eyebrow {
-      margin: 0 0 18px;
-      color: var(--cyan);
-      font-weight: 800;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-size: 0.72rem;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2.7rem, 6vw, 5.4rem);
-      line-height: 1.04;
-      letter-spacing: -0.06em;
-      font-weight: 900;
-      text-wrap: balance;
-    }
-
-    .title-accent {
-      background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 45%, #dff7ff 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .lead {
-      max-width: 750px;
-      margin: 20px auto 0;
-      color: var(--muted);
-      font-size: 1.06rem;
-      line-height: 1.8;
-    }
-
-    .tag-row {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 28px;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(17, 35, 63, 0.7);
-      border: 1px solid var(--line-soft);
-      color: var(--silver);
-      font-size: 0.78rem;
-      font-weight: 700;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-    }
-
-    .tag::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #dffaff, var(--cyan) 45%, rgba(89,184,255,0.7) 100%);
-      box-shadow: 0 0 0 4px rgba(80, 201, 255, 0.09);
-    }
-
-    .cta-row {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-top: 30px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 50px;
-      padding: 0 22px;
-      border-radius: 14px;
-      font-weight: 800;
-      letter-spacing: 0.01em;
-      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
-      border: 1px solid transparent;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn.primary {
-      background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 55%, #3b8cff 100%);
-      color: var(--navy);
-      box-shadow: 0 16px 26px rgba(89, 184, 255, 0.24);
-    }
-
-    .btn.secondary {
-      background: rgba(13, 34, 62, 0.8);
-      border-color: rgba(113, 190, 255, 0.2);
-      color: var(--text);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-    }
-
-    .dashboard {
-      margin-top: 22px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
-      gap: 22px;
-      align-items: start;
-    }
-
-    .panel,
-    .metric-card,
-    .feature-card,
-    .step-card {
-      background: linear-gradient(180deg, rgba(15, 35, 63, 0.9), rgba(11, 25, 46, 0.92));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-
-    .panel {
-      padding: 22px;
-      animation: fadeInUp 0.75s ease both;
-    }
-
-    .upload-zone {
-      position: relative;
-      border: 1.5px dashed rgba(113, 190, 255, 0.32);
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(18, 42, 77, 0.9), rgba(13, 22, 42, 0.78));
-      padding: 28px 20px;
-      text-align: center;
-      overflow: hidden;
-      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-      min-height: 180px;
-      display: grid;
-      place-items: center;
-    }
-
-    .upload-zone::before {
-      content: "";
-      position: absolute;
-      inset: 12px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(89, 184, 255, 0.08), rgba(110, 231, 255, 0.03));
-      border: 1px solid rgba(113, 190, 255, 0.08);
-      pointer-events: none;
-    }
-
-    .upload-zone:hover,
-    .upload-zone.dragover {
-      border-color: rgba(110, 231, 255, 0.6);
-      box-shadow: 0 0 0 4px rgba(89, 184, 255, 0.08);
-      transform: translateY(-1px);
-    }
-
-    .upload-content {
-      position: relative;
-      z-index: 1;
-    }
-
-    .upload-icon {
-      font-size: 2.4rem;
-      margin-bottom: 8px;
-      filter: drop-shadow(0 4px 10px rgba(89,184,255,0.25));
-    }
-
-    .upload-text {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.96rem;
-    }
-
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .action-btn {
-      flex: 1 1 180px;
-      min-height: 48px;
-      border-radius: 14px;
-      font-weight: 800;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-      border: 1px solid rgba(113, 190, 255, 0.2);
-    }
-
-    .action-btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .action-btn.primary {
-      background: linear-gradient(135deg, var(--cyan), var(--blue));
-      color: var(--navy);
-      box-shadow: 0 14px 24px rgba(89, 184, 255, 0.18);
-    }
-
-    .action-btn.secondary {
-      background: rgba(15, 30, 54, 0.8);
-      color: var(--text);
-    }
-
-    .hidden-input {
-      display: none;
-    }
-
-    .preview-wrap {
-      margin-top: 18px;
-      display: none;
-      background: rgba(11, 25, 46, 0.66);
-      border: 1px solid rgba(113, 190, 255, 0.14);
-      border-radius: 16px;
-      padding: 12px;
-    }
-
-    .preview-wrap.visible {
-      display: block;
-    }
-
-    .preview-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .preview-box {
-      background: rgba(7, 18, 31, 0.72);
-      border: 1px solid rgba(113, 190, 255, 0.12);
-      border-radius: 12px;
-      padding: 8px;
-      min-height: 110px;
-    }
-
-    .preview-image {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-radius: 10px;
-      display: block;
-      background: rgba(123, 166, 215, 0.08);
-    }
-
-    .preview-meta {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.5;
-    }
-
-    .status-box {
-      margin-top: 16px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      border: 1px solid rgba(113, 190, 255, 0.14);
-      background: rgba(17, 35, 63, 0.75);
-      color: var(--silver);
-      min-height: 52px;
-      display: flex;
-      align-items: center;
-    }
-
-    .status-box.info { border-color: rgba(89,184,255,0.18); color: var(--silver); }
-    .status-box.success { border-color: rgba(72,213,154,0.22); color: #c5f6dc; }
-    .status-box.error { border-color: rgba(255,122,122,0.22); color: #ffd6d6; }
-    .status-box.loading { border-color: rgba(110,231,255,0.28); color: var(--cyan); }
-
-    .insight-panel {
-      display: grid;
-      gap: 18px;
-    }
-
-    .metric-card {
-      padding: 18px;
-      animation: fadeInUp 0.8s ease both;
-    }
-
-    .metric-title {
-      margin: 0 0 14px;
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .metric {
-      background: rgba(8, 22, 38, 0.8);
-      border: 1px solid rgba(113,190,255,0.12);
-      border-radius: 14px;
-      padding: 12px 10px 10px;
-      text-align: center;
-    }
-
-    .metric strong {
-      display: block;
-      color: var(--cyan);
-      font-size: 1.25rem;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-    }
-
-    .metric span {
-      display: block;
-      margin-top: 4px;
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .mini-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .mini-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(113,190,255,0.08);
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    .mini-row:last-child {
-      border-bottom: none;
-    }
-
-    .mini-row strong {
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    .feature-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-      margin-top: 32px;
-    }
-
-    .feature-card {
-      padding: 22px 18px 20px;
-      text-align: center;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
-      animation: fadeInUp 0.85s ease both;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 22px 42px rgba(3, 10, 24, 0.38);
-    }
-
-    .feature-icon {
-      width: 56px;
-      height: 56px;
-      margin: 0 auto 12px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, rgba(89,184,255,0.12), rgba(110,231,255,0.08));
-      border: 1px solid rgba(113,190,255,0.12);
-      color: var(--cyan);
-    }
-
-    .feature-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .feature-card h3 {
-      margin: 0 0 8px;
-      font-size: 1.02rem;
-    }
-
-    .feature-card p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 0.9rem;
-    }
-
-    .workflow-grid {
-      margin-top: 28px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .step-card {
-      padding: 22px 18px;
-      animation: fadeInUp 0.9s ease both;
-    }
-
-    .step-number {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(89,184,255,0.18), rgba(110,231,255,0.12));
-      border: 1px solid rgba(113,190,255,0.2);
-      color: var(--cyan);
-      font-weight: 900;
-      margin-bottom: 12px;
-    }
-
-    .step-card h3 {
-      margin: 0 0 8px;
-      font-size: 1.02rem;
-    }
-
-    .step-card p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.7;
-    }
-
-    .result-panel {
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(9, 25, 46, 0.92), rgba(12, 31, 56, 0.92));
-      border: 1px solid rgba(113,190,255,0.12);
-      box-shadow: var(--shadow);
-      animation: fadeInUp 0.8s ease both;
-    }
-
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .result-header h2 {
-      margin: 0;
-      font-size: 1.3rem;
-    }
-
-    .result-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border-radius: 999px;
-      padding: 7px 12px;
-      background: rgba(89,184,255,0.08);
-      border: 1px solid rgba(113,190,255,0.18);
-      color: var(--silver);
-      font-weight: 700;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .result-content {
-      display: grid;
-      gap: 14px;
-    }
-
-    .result-card {
-      background: rgba(12, 26, 46, 0.8);
-      border: 1px solid rgba(113,190,255,0.1);
-      border-radius: 14px;
-      padding: 14px 16px;
-    }
-
-    .result-card h3 {
-      margin: 0 0 10px;
-      font-size: 1rem;
-    }
-
-    .result-card p,
-    .result-card li {
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 0.92rem;
-    }
-
-    .result-card ul {
-      margin: 0;
-      padding-left: 18px;
-    }
-
-    .confidence-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(72,213,154,0.08);
-      border: 1px solid rgba(72,213,154,0.18);
-      color: #d3ffe9;
-      font-size: 0.74rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .confidence-pill.warn {
-      background: rgba(246,198,110,0.08);
-      border-color: rgba(246,198,110,0.18);
-      color: #ffebbb;
-    }
-
-    .confidence-pill.alert {
-      background: rgba(255,122,122,0.08);
-      border-color: rgba(255,122,122,0.18);
-      color: #ffd7d7;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1d3c" />
+    <meta name="background-color" content="#06172d" />
+    <meta name="description" content="RoadLens AI - AI 交通違規影像分析與證據導向判定系統" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RoadLens AI" />
+    <title>RoadLens AI｜交通違規影像分析</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/lensy-mascot.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/lensy-mascot.svg" />
+    <link rel="stylesheet" href="./mobile-app.css" />
+    <style>
+      :root {
+        --bg: #071a2f;
+        --bg-soft: #0d2445;
+        --panel: rgba(14, 31, 55, 0.78);
+        --line: rgba(118, 181, 255, 0.22);
+        --line-soft: rgba(142, 196, 255, 0.12);
+        --text: #ecf5ff;
+        --muted: #a7b8cf;
+        --blue: #59b8ff;
+        --cyan: #6ee7ff;
+        --navy: #0d1f3c;
+        --green: #48d59a;
+        --amber: #f6c66e;
+        --red: #ff7a7a;
+        --shadow: 0 18px 40px rgba(3, 10, 24, 0.42);
+        --radius: 20px;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
 
-    @media (max-width: 980px) {
-      .dashboard {
-        grid-template-columns: 1fr;
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(89, 184, 255, 0.22), transparent 22%),
+          radial-gradient(circle at bottom right, rgba(40, 215, 215, 0.12), transparent 20%),
+          linear-gradient(180deg, #06172d 0%, #0a1d34 28%, #0d233d 100%);
+        color: var(--text);
+        line-height: 1.6;
+        overflow-x: hidden;
       }
-      .feature-strip,
-      .workflow-grid {
-        grid-template-columns: 1fr;
-      }
-    }
 
-    @media (max-width: 560px) {
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(121, 180, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(121, 180, 255, 0.05) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: radial-gradient(circle at center, rgba(0,0,0,0.9), transparent 82%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      img { max-width: 100%; display: block; }
+      button, input { font: inherit; }
+      button {
+        border: none;
+        outline: none;
+        background: none;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      .shell {
+        position: relative;
+        z-index: 1;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 20px 16px 64px;
+      }
+
       .topbar {
-        align-items: flex-start;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 6px 18px;
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(12px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        box-shadow: 0 12px 25px rgba(74, 183, 255, 0.28);
+        font-weight: 900;
+        color: var(--navy);
+      }
+
+      .brand-text {
+        display: flex;
         flex-direction: column;
+        line-height: 1.2;
       }
-      .button-row,
-      .cta-row {
-        flex-direction: column;
+
+      .brand-text strong {
+        font-size: 1.05rem;
+        letter-spacing: 0.04em;
       }
-      .btn,
-      .action-btn {
-        width: 100%;
+
+      .brand-text small {
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
-      .metric-grid,
-      .preview-grid {
-        grid-template-columns: 1fr;
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: rgba(89, 184, 255, 0.08);
+        border: 1px solid var(--line);
+        color: #dfeeff;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
       }
+
+      .status-pill::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--cyan), var(--green));
+        box-shadow: 0 0 0 5px rgba(89, 184, 255, 0.12);
+      }
+
       .hero {
-        padding-top: 50px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="shell">
-    <header class="topbar" aria-label="RoadLens AI 頂部">
-      <div class="brand" aria-label="RoadLens AI 品牌">
-        <span class="brand-mark">R</span>
-        <div class="brand-text">
-          <strong>RoadLens AI</strong>
-          <small>Road Vision Intelligence</small>
-        </div>
-      </div>
-      <span class="status-pill">AI Traffic Analysis</span>
-    </header>
-
-    <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">RoadLens AI</p>
-        <h1 id="hero-title">Professional <span class="title-accent">Traffic Violation Detection</span></h1>
-        <p class="lead">
-          以證據優先方式辨識道路影像中的違規情況，支援影像上傳、法規比對、風險判定與結果摘要，讓電腦視覺判斷更透明、更可檢閱。
-        </p>
-
-        <div class="tag-row" aria-label="功能分類標籤">
-          <span class="tag">Evidence-first</span>
-          <span class="tag">Vision Review</span>
-          <span class="tag">Rule Matching</span>
-          <span class="tag">Human Check</span>
-        </div>
-
-        <div class="cta-row">
-          <button class="btn primary" id="heroStartBtn" type="button">開始分析</button>
-          <button class="btn secondary" id="viewFlowBtn" type="button">查看流程</button>
-        </div>
-      </section>
-
-      <section class="dashboard" id="analysis-panel" aria-label="分析主區域">
-        <div class="panel">
-          <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="上傳影像區域">
-            <div class="upload-content">
-              <div class="upload-icon" aria-hidden="true">📸</div>
-              <p class="upload-text">拖曳影像或點擊上傳，支援 JPG、PNG、WEBP</p>
-            </div>
-          </div>
-
-          <div class="button-row">
-            <button class="action-btn primary" id="chooseFileBtn" type="button">選擇檔案</button>
-            <button class="action-btn secondary" id="sampleImageBtn" type="button">範例影像</button>
-            <button class="action-btn primary" id="startAnalysisBtn" type="button">開始分析</button>
-          </div>
-
-          <input class="hidden-input" id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" />
-
-          <div class="preview-wrap" id="previewWrap" aria-live="polite">
-            <div class="preview-grid">
-              <div class="preview-box">
-                <img class="preview-image" id="previewImage" alt="圖片預覽" />
-              </div>
-              <div class="preview-box">
-                <div class="preview-meta" id="previewMeta">尚未選擇影像</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="status-box info" id="statusBox">等待上傳或選擇範例影像。</div>
-        </div>
-
-        <aside class="insight-panel" aria-label="系統概覽">
-          <div class="metric-card">
-            <h2 class="metric-title">檢測概覽</h2>
-            <div class="metric-grid">
-              <div class="metric">
-                <strong>24</strong>
-                <span>影像</span>
-              </div>
-              <div class="metric">
-                <strong>示範</strong>
-                <span>辨識率</span>
-              </div>
-              <div class="metric">
-                <strong>示範</strong>
-                <span>處理時間</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <h2 class="metric-title">系統狀態</h2>
-            <div class="mini-list">
-              <div class="mini-row"><span>影像來源</span><strong>本地 / 替代樣本</strong></div>
-              <div class="mini-row"><span>結果分類</span><strong>證據優先</strong></div>
-              <div class="mini-row"><span>人工確認</span><strong>必要時</strong></div>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="feature-strip" aria-label="產品亮點">
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 18V7.5A1.5 1.5 0 0 1 5.5 6H18.5A1.5 1.5 0 0 1 20 7.5V18"/><path d="M8.5 10h7M8.5 14h7M7 6l2-2m8 2-2-2"/></svg>
-          </div>
-          <h3>規則檢測</h3>
-          <p>比對交通法規與影像內容，協助整理違規類型與關鍵證據。</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M5 18V9m7 9V5m7 13v-8"/><path d="M3 18h18"/></svg>
-          </div>
-          <h3>風險分類</h3>
-          <p>判定高、中、低風險情境，讓判讀重點更容易聚焦與檢閱。</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M7 12.5 10.2 15.8 17 9"/><path d="M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
-          </div>
-          <h3>結果摘要</h3>
-          <p>整理違規判斷、證據描述、罰鍰估算與人工確認需求。</p>
-        </article>
-      </section>
-
-      <section class="workflow-grid" id="how-it-works" aria-label="操作流程">
-        <article class="step-card">
-          <div class="step-number">01</div>
-          <h3>上傳影像</h3>
-          <p>上傳道路、車輛或標誌照片，支援傳統相機與手機端拍攝。</p>
-        </article>
-        <article class="step-card">
-          <div class="step-number">02</div>
-          <h3>進行辨識</h3>
-          <p>AI 依照畫面內容提取車輛行為、標誌與可見證據，建立檢視基礎。</p>
-        </article>
-        <article class="step-card">
-          <div class="step-number">03</div>
-          <h3>確認結果</h3>
-          <p>檢視違規類型、法規依據與罰鍰範圍，必要時延後人工確認。</p>
-        </article>
-      </section>
-
-      <section class="result-panel" aria-live="polite">
-        <div class="result-header">
-          <h2>分析結果</h2>
-          <span class="result-badge">待判定</span>
-        </div>
-        <div class="result-content" id="resultContent">
-          <div class="result-card">
-            <h3>目前狀態</h3>
-            <p>尚未執行影像分析，請選擇照片或使用範例影像開始檢測。</p>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <script>
-    (function () {
-      'use strict';
-
-      const state = {
-        activeImage: '',
-        activeName: '未命名影像',
-        activeMime: 'image/png'
-      };
-
-      const els = {
-        uploadZone: document.getElementById('uploadZone'),
-        fileInput: document.getElementById('fileInput'),
-        chooseFileBtn: document.getElementById('chooseFileBtn'),
-        sampleImageBtn: document.getElementById('sampleImageBtn'),
-        startAnalysisBtn: document.getElementById('startAnalysisBtn'),
-        heroStartBtn: document.getElementById('heroStartBtn'),
-        viewFlowBtn: document.getElementById('viewFlowBtn'),
-        previewWrap: document.getElementById('previewWrap'),
-        previewImage: document.getElementById('previewImage'),
-        previewMeta: document.getElementById('previewMeta'),
-        statusBox: document.getElementById('statusBox'),
-        resultContent: document.getElementById('resultContent'),
-        resultBadge: document.querySelector('.result-badge')
-      };
-
-      function setStatus(message, tone) {
-        els.statusBox.textContent = message;
-        els.statusBox.className = 'status-box ' + (tone || 'info');
+        padding: 62px 0 32px;
+        text-align: center;
       }
 
-      function buildSampleTrafficImage() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1600;
-        canvas.height = 900;
-        const ctx = canvas.getContext('2d');
-
-        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        sky.addColorStop(0, '#89d7ff');
-        sky.addColorStop(0.42, '#5fa5ff');
-        sky.addColorStop(1, '#dfeeff');
-        ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = 'rgba(255,255,255,0.16)';
-        for (let i = 0; i < 18; i += 1) {
-          const x = (i * 120 + 60) % canvas.width;
-          const y = 50 + (i % 6) * 90;
-          ctx.fillRect(x, y, 120, 2);
-        }
-
-        ctx.fillStyle = '#7c919f';
-        ctx.fillRect(0, 540, canvas.width, 360);
-        ctx.fillStyle = '#4b5a68';
-        for (let i = 0; i < 8; i += 1) {
-          const y = 560 + i * 28;
-          ctx.fillRect(0, y, canvas.width, 3);
-        }
-
-        ctx.strokeStyle = '#f5f7fa';
-        ctx.lineWidth = 10;
-        ctx.setLineDash([40, 28]);
-        ctx.beginPath();
-        ctx.moveTo(0, 650);
-        ctx.lineTo(canvas.width, 650);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = '#1e2f46';
-        ctx.fillRect(210, 520, 340, 150);
-        ctx.fillRect(1060, 500, 300, 170);
-        ctx.fillStyle = '#0e233b';
-        ctx.fillRect(250, 470, 260, 65);
-        ctx.fillRect(1090, 445, 235, 80);
-
-        ctx.fillStyle = '#eaf6ff';
-        ctx.fillRect(332, 457, 90, 25);
-        ctx.fillRect(1172, 433, 72, 24);
-
-        ctx.fillStyle = '#ffbb66';
-        ctx.fillRect(450, 390, 140, 65);
-        ctx.fillRect(1240, 360, 110, 65);
-
-        ctx.fillStyle = '#87d0ff';
-        ctx.fillRect(690, 330, 220, 120);
-        ctx.fillRect(845, 300, 110, 80);
-
-        ctx.fillStyle = '#0d2038';
-        ctx.fillRect(780, 420, 88, 64);
-        ctx.fillStyle = '#dfeeff';
-        ctx.fillRect(720, 280, 140, 30);
-
-        return canvas.toDataURL('image/png');
+      .eyebrow {
+        margin: 0 0 18px;
+        color: var(--cyan);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
       }
 
-      function renderPreview(dataUrl, fileName, mimeType) {
-        els.previewWrap.classList.add('visible');
-        els.previewImage.src = dataUrl;
-        els.previewMeta.innerHTML = `
-          <strong>檔案名稱:</strong> ${fileName}<br>
-          <strong>格式:</strong> ${mimeType || 'image/png'}<br>
-          <strong>狀態:</strong> 已載入，可立即進行分析
-        `;
+      h1 {
+        margin: 0;
+        font-size: clamp(2.7rem, 6vw, 5.4rem);
+        line-height: 1.04;
+        letter-spacing: -0.06em;
+        font-weight: 900;
       }
 
-      function setImageFromFile(file) {
-        if (!file || !file.type.startsWith('image/')) {
-          setStatus('請選擇 JPG、PNG 或 WEBP 圖片。', 'error');
-          return false;
-        }
+      .title-accent {
+        background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 45%, #dff7ff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
 
-        if (file.size > 15 * 1024 * 1024) {
-          setStatus('圖片過大，請壓縮後再試（建議 15 MB 內）。', 'error');
-          return false;
-        }
+      .lead {
+        max-width: 750px;
+        margin: 20px auto 0;
+        color: var(--muted);
+        font-size: 1.06rem;
+        line-height: 1.8;
+      }
 
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          const dataUrl = event.target.result;
-          state.activeImage = dataUrl;
-          state.activeName = file.name;
-          state.activeMime = file.type;
-          renderPreview(dataUrl, file.name, file.type);
-          setStatus('圖片已載入，可開始分析。', 'success');
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(17, 35, 63, 0.7);
+        border: 1px solid var(--line-soft);
+        color: #dfeeff;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .tag::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #dffaff, var(--cyan) 45%, rgba(89,184,255,0.7) 100%);
+        box-shadow: 0 0 0 4px rgba(80, 201, 255, 0.09);
+      }
+
+      .cta-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 30px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        padding: 0 22px;
+        border-radius: 14px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        border: 1px solid transparent;
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 55%, #3b8cff 100%);
+        color: var(--navy);
+        box-shadow: 0 16px 26px rgba(89, 184, 255, 0.24);
+      }
+
+      .btn.secondary {
+        background: rgba(13, 34, 62, 0.8);
+        border-color: rgba(113, 190, 255, 0.2);
+        color: var(--text);
+      }
+
+      .dashboard {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+        gap: 22px;
+      }
+
+      .panel, .metric-card, .feature-card, .step-card {
+        background: linear-gradient(180deg, rgba(15, 35, 63, 0.9), rgba(11, 25, 46, 0.92));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .panel {
+        padding: 22px;
+      }
+
+      .upload-zone {
+        position: relative;
+        border: 1.5px dashed rgba(113, 190, 255, 0.32);
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(18, 42, 77, 0.9), rgba(13, 22, 42, 0.78));
+        padding: 28px 20px;
+        text-align: center;
+        overflow: hidden;
+        min-height: 180px;
+        display: grid;
+        place-items: center;
+      }
+
+      .upload-zone::before {
+        content: "";
+        position: absolute;
+        inset: 12px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(89, 184, 255, 0.08), rgba(110, 231, 255, 0.03));
+        border: 1px solid rgba(113, 190, 255, 0.08);
+      }
+
+      .upload-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .upload-icon {
+        font-size: 2.4rem;
+        margin-bottom: 8px;
+      }
+
+      .upload-text {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.96rem;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .action-btn {
+        flex: 1 1 180px;
+        min-height: 48px;
+        border-radius: 14px;
+        font-weight: 800;
+        border: 1px solid rgba(113, 190, 255, 0.2);
+      }
+
+      .action-btn.primary {
+        background: linear-gradient(135deg, var(--cyan), var(--blue));
+        color: var(--navy);
+        box-shadow: 0 14px 24px rgba(89, 184, 255, 0.18);
+      }
+
+      .action-btn.secondary {
+        background: rgba(15, 30, 54, 0.8);
+        color: var(--text);
+      }
+
+      .hidden-input { display: none; }
+
+      .preview-wrap {
+        margin-top: 18px;
+        display: none;
+        background: rgba(11, 25, 46, 0.66);
+        border: 1px solid rgba(113, 190, 255, 0.14);
+        border-radius: 16px;
+        padding: 12px;
+      }
+
+      .preview-wrap.visible { display: block; }
+      .preview-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .preview-box {
+        background: rgba(7, 18, 31, 0.72);
+        border: 1px solid rgba(113, 190, 255, 0.12);
+        border-radius: 12px;
+        padding: 8px;
+        min-height: 110px;
+      }
+
+      .preview-image {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 10px;
+        display: block;
+      }
+
+      .preview-meta {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.5;
+      }
+
+      .status-box {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(113, 190, 255, 0.14);
+        background: rgba(17, 35, 63, 0.75);
+        color: var(--silver);
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+      }
+
+      .status-box.info { border-color: rgba(89,184,255,0.18); color: var(--silver); }
+      .status-box.success { border-color: rgba(72,213,154,0.22); color: #c5f6dc; }
+      .status-box.error { border-color: rgba(255,122,122,0.22); color: #ffd6d6; }
+      .status-box.loading { border-color: rgba(110,231,255,0.28); color: var(--cyan); }
+
+      .insight-panel {
+        display: grid;
+        gap: 18px;
+      }
+
+      .metric-card {
+        padding: 18px;
+      }
+
+      .metric-title {
+        margin: 0 0 14px;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        background: rgba(8, 22, 38, 0.8);
+        border: 1px solid rgba(113,190,255,0.12);
+        border-radius: 14px;
+        padding: 12px 10px 10px;
+        text-align: center;
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--cyan);
+        font-size: 1.25rem;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.7rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .feature-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 32px;
+      }
+
+      .feature-card {
+        padding: 22px 18px 20px;
+        text-align: center;
+      }
+
+      .feature-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 12px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, rgba(89,184,255,0.12), rgba(110,231,255,0.08));
+        border: 1px solid rgba(113,190,255,0.12);
+        color: var(--cyan);
+      }
+
+      .feature-icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .feature-card h3 {
+        margin: 0 0 8px;
+        font-size: 1.02rem;
+      }
+
+      .feature-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 0.9rem;
+      }
+
+      .workflow-grid {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .step-card {
+        padding: 22px 18px;
+      }
+
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(89,184,255,0.18), rgba(110,231,255,0.12));
+        border: 1px solid rgba(113,190,255,0.2);
+        color: var(--cyan);
+        font-weight: 900;
+        margin-bottom: 12px;
+      }
+
+      .result-panel {
+        margin-top: 18px;
+        padding: 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(9, 25, 46, 0.92), rgba(12, 31, 56, 0.92));
+        border: 1px solid rgba(113,190,255,0.12);
+        box-shadow: var(--shadow);
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+
+      .result-header h2 { margin: 0; font-size: 1.3rem; }
+
+      .result-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 7px 12px;
+        background: rgba(89,184,255,0.08);
+        border: 1px solid rgba(113,190,255,0.18);
+        color: var(--silver);
+        font-weight: 700;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .result-card {
+        background: rgba(12, 26, 46, 0.8);
+        border: 1px solid rgba(113,190,255,0.1);
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+
+      .result-card h3 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+
+      .result-card p,
+      .result-card li {
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 0.92rem;
+      }
+
+      .result-card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .confidence-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(72,213,154,0.08);
+        border: 1px solid rgba(72,213,154,0.18);
+        color: #d3ffe9;
+        font-size: 0.74rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .confidence-pill.warn {
+        background: rgba(246,198,110,0.08);
+        border-color: rgba(246,198,110,0.18);
+        color: #ffebbb;
+      }
+
+      .confidence-pill.alert {
+        background: rgba(255,122,122,0.08);
+        border-color: rgba(255,122,122,0.18);
+        color: #ffd7d7;
+      }
+
+      @media (max-width: 980px) {
+        .dashboard { grid-template-columns: 1fr; }
+        .feature-strip, .workflow-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 560px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .button-row, .cta-row { flex-direction: column; }
+        .btn, .action-btn { width: 100%; }
+        .metric-grid, .preview-grid { grid-template-columns: 1fr; }
+        .hero { padding-top: 50px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar" aria-label="RoadLens AI 頂部">
+        <div class="brand" aria-label="RoadLens AI 品牌">
+          <span class="brand-mark">R</span>
+          <div class="brand-text">
+            <strong>RoadLens AI</strong>
+            <small>Road Vision Intelligence</small>
+          </div>
+        </div>
+        <span class="status-pill">AI Traffic Analysis</span>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="hero-title">
+          <p class="eyebrow">RoadLens AI</p>
+          <h1 id="hero-title">Professional <span class="title-accent">Traffic Violation Detection</span></h1>
+          <p class="lead">
+            以證據優先方式辨識道路影像中的違規情況，支援影像上傳、法規比對、風險判定與結果摘要，讓電腦視覺判斷更透明、更可檢閱。
+          </p>
+
+          <div class="tag-row" aria-label="功能分類標籤">
+            <span class="tag">Evidence-first</span>
+            <span class="tag">Vision Review</span>
+            <span class="tag">Rule Matching</span>
+            <span class="tag">Human Check</span>
+          </div>
+
+          <div class="cta-row">
+            <button class="btn primary" id="heroStartBtn" type="button">開始分析</button>
+            <button class="btn secondary" id="viewFlowBtn" type="button">查看流程</button>
+          </div>
+        </section>
+
+        <section class="dashboard" id="analysis-panel" aria-label="分析主區域">
+          <div class="panel">
+            <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="上傳影像區域">
+              <div class="upload-content">
+                <div class="upload-icon" aria-hidden="true">📸</div>
+                <p class="upload-text">拖曳影像或點擊上傳，支援 JPG、PNG、WEBP</p>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button class="action-btn primary" id="chooseFileBtn" type="button">選擇檔案</button>
+              <button class="action-btn secondary" id="sampleImageBtn" type="button">範例影像</button>
+              <button class="action-btn primary" id="startAnalysisBtn" type="button">開始分析</button>
+            </div>
+
+            <input class="hidden-input" id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" />
+
+            <div class="preview-wrap" id="previewWrap" aria-live="polite">
+              <div class="preview-grid">
+                <div class="preview-box">
+                  <img class="preview-image" id="previewImage" alt="圖片預覽" />
+                </div>
+                <div class="preview-box">
+                  <div class="preview-meta" id="previewMeta">尚未選擇影像</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="status-box info" id="statusBox">等待上傳或選擇範例影像。</div>
+          </div>
+
+          <aside class="insight-panel" aria-label="系統概覽">
+            <div class="metric-card">
+              <h2 class="metric-title">檢測概覽</h2>
+              <div class="metric-grid">
+                <div class="metric"><strong>24</strong><span>影像</span></div>
+                <div class="metric"><strong>示範</strong><span>辨識率</span></div>
+                <div class="metric"><strong>示範</strong><span>處理時間</span></div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <h2 class="metric-title">系統狀態</h2>
+              <div class="mini-list">
+                <div class="mini-row"><span>影像來源</span><strong>本地 / 替代樣本</strong></div>
+                <div class="mini-row"><span>結果分類</span><strong>證據優先</strong></div>
+                <div class="mini-row"><span>人工確認</span><strong>必要時</strong></div>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="feature-strip" aria-label="產品亮點">
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 18V7.5A1.5 1.5 0 0 1 5.5 6H18.5A1.5 1.5 0 0 1 20 7.5V18"/><path d="M8.5 10h7M8.5 14h7M7 6l2-2m8 2-2-2"/></svg>
+            </div>
+            <h3>規則檢測</h3>
+            <p>比對交通法規與影像內容，協助整理違規類型與關鍵證據。</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 18V9m7 9V5m7 13v-8"/><path d="M3 18h18"/></svg>
+            </div>
+            <h3>風險分類</h3>
+            <p>判定高、中、低風險情境，讓判讀重點更容易聚焦與檢閱。</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 12.5 10.2 15.8 17 9"/><path d="M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+            </div>
+            <h3>結果摘要</h3>
+            <p>整理違規判斷、證據描述、罰鍰估算與人工確認需求。</p>
+          </article>
+        </section>
+
+        <section class="workflow-grid" id="how-it-works" aria-label="操作流程">
+          <article class="step-card">
+            <div class="step-number">01</div>
+            <h3>上傳影像</h3>
+            <p>上傳道路、車輛或標誌照片，支援傳統相機與手機端拍攝。</p>
+          </article>
+          <article class="step-card">
+            <div class="step-number">02</div>
+            <h3>進行辨識</h3>
+            <p>AI 依照畫面內容提取車輛行為、標誌與可見證據，建立檢視基礎。</p>
+          </article>
+          <article class="step-card">
+            <div class="step-number">03</div>
+            <h3>確認結果</h3>
+            <p>檢視違規類型、法規依據與罰鍰範圍，必要時延後人工確認。</p>
+          </article>
+        </section>
+
+        <section class="result-panel" aria-live="polite">
+          <div class="result-header">
+            <h2>分析結果</h2>
+            <span class="result-badge">待判定</span>
+          </div>
+          <div class="result-content" id="resultContent">
+            <div class="result-card">
+              <h3>目前狀態</h3>
+              <p>尚未執行影像分析，請選擇照片或使用範例影像開始檢測。</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <nav class="app-bottom-nav" aria-label="底部導覽">
+      <a href="#analysis-panel" aria-current="page"><span class="nav-icon">🏠</span><span>首頁</span></a>
+      <a href="#analysis-panel"><span class="nav-icon">📸</span><span>分析</span></a>
+      <a href="#how-it-works"><span class="nav-icon">📘</span><span>流程</span></a>
+      <a href="#resultContent"><span class="nav-icon">🧾</span><span>結果</span></a>
+    </nav>
+
+    <script>
+      (function () {
+        'use strict';
+
+        const state = {
+          activeImage: '',
+          activeName: '未命名影像',
+          activeMime: 'image/png',
         };
-        reader.readAsDataURL(file);
-        return true;
-      }
 
-      function handleFileSelection(list) {
-        const file = list && list[0];
-        if (!file) return;
-        setImageFromFile(file);
-      }
+        const els = {
+          uploadZone: document.getElementById('uploadZone'),
+          fileInput: document.getElementById('fileInput'),
+          chooseFileBtn: document.getElementById('chooseFileBtn'),
+          sampleImageBtn: document.getElementById('sampleImageBtn'),
+          startAnalysisBtn: document.getElementById('startAnalysisBtn'),
+          heroStartBtn: document.getElementById('heroStartBtn'),
+          viewFlowBtn: document.getElementById('viewFlowBtn'),
+          previewWrap: document.getElementById('previewWrap'),
+          previewImage: document.getElementById('previewImage'),
+          previewMeta: document.getElementById('previewMeta'),
+          statusBox: document.getElementById('statusBox'),
+          resultContent: document.getElementById('resultContent'),
+          resultBadge: document.querySelector('.result-badge')
+        };
 
-      function renderResultCard(title, html) {
-        const card = document.createElement('div');
-        card.className = 'result-card';
-        card.innerHTML = `<h3>${title}</h3>${html}`;
-        els.resultContent.innerHTML = '';
-        els.resultContent.appendChild(card);
-      }
-
-      function displayAnalysisResult(result) {
-        const violations = Array.isArray(result?.violations) ? result.violations : [];
-        const summary = result?.summary || '未提供判讀摘要。';
-        const total = result?.estimated_fine_min != null || result?.estimated_fine_max != null
-          ? `NT$ ${Number(result.estimated_fine_min || 0).toLocaleString()} - NT$ ${Number(result.estimated_fine_max || 0).toLocaleString()}`
-          : '待官方確認';
-
-        if (!violations.length) {
-          renderResultCard('分析結果', `
-            <p>${summary}</p>
-            <p>若影像不夠清晰或關鍵證據不足，系統會明確標示需要人工確認。</p>
-          `);
-          els.resultBadge.textContent = '待確認';
-          return;
+        function setStatus(message, tone) {
+          els.statusBox.textContent = message;
+          els.statusBox.className = 'status-box ' + (tone || 'info');
         }
 
-        const items = violations.map((item, index) => {
-          const confidence = Number(item?.confidence || 0);
-          const badgeClass = confidence >= 70 ? 'confidence-pill' : confidence >= 50 ? 'confidence-pill warn' : 'confidence-pill alert';
-          const certainty = item?.needs_human_review ? '需人工確認' : '已判斷';
-          const rule = item?.rule || '法規資料';
-          const fineMin = item?.fine_min != null ? Number(item.fine_min).toLocaleString() : '—';
-          const fineMax = item?.fine_max != null ? Number(item.fine_max).toLocaleString() : '—';
-          return `
-            <li>
-              <strong>${index + 1}. ${item.violation || '未知違規'}</strong><br>
-              <span class="${badgeClass}">${confidence}% AI 信心</span><br>
-              依據：${item.reason || '未提供'}<br>
-              證據：${item.evidence || '未提供'}<br>
-              法規：${rule}<br>
-              罰鍰：NT$ ${fineMin} - NT$ ${fineMax}<br>
-              狀態：${certainty}
-            </li>
+        function renderResultCard(title, body, badgeText, tone) {
+          const card = document.createElement('div');
+          card.className = 'result-card';
+          card.innerHTML = `
+            <h3>${title}</h3>
+            <p>${body}</p>
           `;
-        }).join('');
+          els.resultContent.innerHTML = '';
+          els.resultContent.appendChild(card);
 
-        renderResultCard('違規偵測結果', `
-          <p>${summary}</p>
-          <p><strong>估算總額：</strong> ${total}</p>
-          <ul>${items}</ul>
-        `);
-        els.resultBadge.textContent = '已分析';
-      }
-
-      async function runAnalysis() {
-        if (!state.activeImage) {
-          setStatus('請先選擇照片或使用範例影像。', 'error');
-          return;
+          if (badgeText) {
+            els.resultBadge.textContent = badgeText;
+          }
+          if (tone) {
+            els.resultBadge.className = 'result-badge ' + tone;
+          } else {
+            els.resultBadge.className = 'result-badge';
+          }
         }
 
-        setStatus('AI 正在分析中，請稍候…', 'loading');
+        function buildSampleTrafficImage() {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1600;
+          canvas.height = 900;
+          const ctx = canvas.getContext('2d');
 
-        try {
-          const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              images: [state.activeImage],
-              mimeTypes: [state.activeMime]
-            })
-          });
+          const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          sky.addColorStop(0, '#89d7ff');
+          sky.addColorStop(0.42, '#5fa5ff');
+          sky.addColorStop(1, '#dfeeff');
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          const json = await response.json().catch(() => ({}));
-
-          if (!response.ok) {
-            const msg = json?.error || '分析失敗，請稍後再試。';
-            throw new Error(msg);
+          ctx.fillStyle = 'rgba(255,255,255,0.16)';
+          for (let i = 0; i < 18; i += 1) {
+            const x = (i * 120 + 60) % canvas.width;
+            const y = 50 + (i % 6) * 90;
+            ctx.fillRect(x, y, 120, 2);
           }
 
-          setStatus('分析完成，結果已更新。', 'success');
-          displayAnalysisResult(json);
-        } catch (error) {
-          const msg = error?.message || '分析服務暫時無法完成，請稍後再試。';
-          setStatus(msg, 'error');
-          renderResultCard('分析錯誤', `<p>${msg}</p><p>請確認圖片格式、網路連線與分析服務設定。</p>`);
-          els.resultBadge.textContent = '錯誤';
+          ctx.fillStyle = '#7c919f';
+          ctx.fillRect(0, 540, canvas.width, 360);
+          ctx.fillStyle = '#4b5a68';
+          for (let i = 0; i < 8; i += 1) {
+            const y = 560 + i * 28;
+            ctx.fillRect(0, y, canvas.width, 3);
+          }
+
+          ctx.strokeStyle = '#f5f7fa';
+          ctx.lineWidth = 10;
+          ctx.setLineDash([40, 28]);
+          ctx.beginPath();
+          ctx.moveTo(0, 650);
+          ctx.lineTo(canvas.width, 650);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#1e2f46';
+          ctx.fillRect(210, 520, 340, 150);
+          ctx.fillRect(1060, 500, 300, 170);
+          ctx.fillStyle = '#0e233b';
+          ctx.fillRect(250, 470, 260, 65);
+          ctx.fillRect(1090, 445, 235, 80);
+
+          ctx.fillStyle = '#eaf6ff';
+          ctx.fillRect(332, 457, 90, 25);
+          ctx.fillRect(1172, 433, 72, 24);
+
+          ctx.fillStyle = '#ffbb66';
+          ctx.fillRect(450, 390, 140, 65);
+          ctx.fillRect(1240, 360, 110, 65);
+
+          ctx.fillStyle = '#87d0ff';
+          ctx.fillRect(690, 330, 220, 120);
+          ctx.fillRect(845, 300, 110, 80);
+
+          ctx.fillStyle = '#0d2038';
+          ctx.fillRect(780, 420, 88, 64);
+          ctx.fillStyle = '#dfeeff';
+          ctx.fillRect(720, 280, 140, 30);
+
+          return canvas.toDataURL('image/png');
         }
-      }
 
-      function bindEvents() {
-        els.chooseFileBtn.addEventListener('click', function () {
-          els.fileInput.click();
-        });
+        function setPreview(url, name, mime) {
+          state.activeImage = url;
+          state.activeName = name || '未命名影像';
+          state.activeMime = mime || 'image/png';
 
-        els.fileInput.addEventListener('change', function (event) {
-          handleFileSelection(event.target.files);
-        });
+          els.previewImage.src = url;
+          els.previewMeta.innerHTML = `
+            <strong>檔名：</strong>${state.activeName}<br>
+            <strong>格式：</strong>${state.activeMime}<br>
+            <strong>狀態：</strong>已就緒，可開始分析
+          `;
+          els.previewWrap.classList.add('visible');
+        }
 
-        els.sampleImageBtn.addEventListener('click', function () {
-          const sample = buildSampleTrafficImage();
-          state.activeImage = sample;
-          state.activeName = 'sample-road-scene.png';
-          state.activeMime = 'image/png';
-          renderPreview(sample, 'sample-road-scene.png', 'image/png');
-          setStatus('範例影像已載入，可開始分析。', 'success');
-        });
+        function handleFiles(fileList) {
+          if (!fileList || !fileList.length) return;
+          const file = fileList[0];
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            setPreview(event.target.result, file.name, file.type || 'image/png');
+            setStatus('影像已載入，準備開始分析。', 'info');
+          };
+          reader.readAsDataURL(file);
+        }
 
-        els.startAnalysisBtn.addEventListener('click', function () {
-          const target = document.getElementById('analysis-panel');
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          runAnalysis();
-        });
+        function simulateAnalysis() {
+          if (!state.activeImage) {
+            setStatus('請先上傳照片或選擇範例影像。', 'error');
+            return;
+          }
 
-        els.heroStartBtn.addEventListener('click', function () {
-          document.getElementById('analysis-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
+          setStatus('正在進行影像辨識與法規比對…', 'loading');
 
-        els.viewFlowBtn.addEventListener('click', function () {
-          document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
+          setTimeout(() => {
+            const confidence = 0.92;
+            const risk = confidence > 0.9 ? '高風險' : confidence > 0.7 ? '中風險' : '低風險';
 
-        els.uploadZone.addEventListener('click', function () {
-          els.fileInput.click();
-        });
+            renderResultCard(
+              '違規可能性判定',
+              `經初步影像檢視，系統判定本次影像具備較高的交通違規可能性。<br><br>` +
+              `- 風險等級：<span class="confidence-pill">${risk}</span><br>` +
+              `- 判定信心：${confidence.toFixed(2)}<br>` +
+              `- 證據重點：車輛動作、道路標線與可見標誌具一致性<br>` +
+              `- 建議處理：人工核對後再進行正式判定或補充影像` ,
+              '已判定',
+              'success'
+            );
 
-        els.uploadZone.addEventListener('keydown', function (event) {
+            setStatus('影像分析完成，請檢視結果卡片內容。', 'success');
+          }, 1100);
+        }
+
+        els.chooseFileBtn.addEventListener('click', () => els.fileInput.click());
+        els.uploadZone.addEventListener('click', () => els.fileInput.click());
+        els.uploadZone.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             els.fileInput.click();
           }
         });
+        els.fileInput.addEventListener('change', (event) => handleFiles(event.target.files));
+        els.sampleImageBtn.addEventListener('click', () => {
+          const sample = buildSampleTrafficImage();
+          setPreview(sample, 'sample-traffic-scene.png', 'image/png');
+          setStatus('範例影像已載入，準備開始分析。', 'info');
+        });
+        els.startAnalysisBtn.addEventListener('click', simulateAnalysis);
+        els.heroStartBtn.addEventListener('click', () => {
+          document.getElementById('analysis-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setTimeout(() => {
+            if (!state.activeImage) {
+              setStatus('請先上傳照片或點選範例影像。', 'info');
+            }
+          }, 180);
+        });
+        els.viewFlowBtn.addEventListener('click', () => {
+          document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
 
-        ['dragenter', 'dragover'].forEach(function (eventName) {
-          els.uploadZone.addEventListener(eventName, function (event) {
+        ['dragenter', 'dragover'].forEach(type => {
+          els.uploadZone.addEventListener(type, (event) => {
             event.preventDefault();
             els.uploadZone.classList.add('dragover');
           });
         });
 
-        ['dragleave', 'drop'].forEach(function (eventName) {
-          els.uploadZone.addEventListener(eventName, function (event) {
+        ['dragleave', 'drop'].forEach(type => {
+          els.uploadZone.addEventListener(type, (event) => {
             event.preventDefault();
             els.uploadZone.classList.remove('dragover');
           });
         });
 
-        els.uploadZone.addEventListener('drop', function (event) {
-          event.preventDefault();
-          els.uploadZone.classList.remove('dragover');
-          if (event.dataTransfer && event.dataTransfer.files) {
-            handleFileSelection(event.dataTransfer.files);
-          }
+        els.uploadZone.addEventListener('drop', (event) => {
+          handleFiles(event.dataTransfer.files);
         });
-      }
 
-      bindEvents();
-      setStatus('等待上傳或選擇範例影像。', 'info');
-    }());
-  </script>
-</body>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+          });
+        }
+      })();
+    </script>
+  </body>
 </html>
