@@ -48,7 +48,7 @@
     .brand-text { display:flex; flex-direction:column; line-height:1.2; }
     .brand-text strong { font-size:1.05rem; letter-spacing:.04em; }
     .brand-text small { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
-    .status-pill { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px; background:rgba(89,184,255,.08); border:1px solid var(--line); color:var(--silver); font-weight:700; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; }
+    .status-pill { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px; background:rgba(89,184,255,.08); border:1px solid var(--line); color:var(--silver); font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
     .status-pill::before { content:""; width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--green)); box-shadow:0 0 0 5px rgba(89,184,255,.12); }
     .hero { padding:62px 0 32px; text-align:center; }
     .eyebrow { margin:0 0 18px; color:var(--cyan); font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:.72rem; }
@@ -63,10 +63,10 @@
     .btn.primary { background:linear-gradient(135deg,var(--cyan),var(--blue) 55%,#3b8cff); color:var(--navy); box-shadow:0 16px 26px rgba(89,184,255,.24); }
     .btn.secondary { background:rgba(13,34,62,.8); border-color:rgba(113,190,255,.2); color:var(--text); }
     .dashboard { margin-top:22px; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(260px,.8fr); gap:22px; align-items:start; }
-    .panel,.metric-card,.feature-card,.step-card { background:linear-gradient(180deg,rgba(15,35,63,.9),rgba(11,25,46,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px); }
+    .panel,.metric-card,.feature-card,.step-card { background:linear-gradient(180deg,rgba(15,35,63,.9),rgba(11,25,46,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
     .panel { padding:22px; }
-    .upload-zone { position:relative; border:1.5px dashed rgba(113,190,255,.32); border-radius:20px; background:linear-gradient(135deg,rgba(18,42,77,.9),rgba(13,22,42,.78)); padding:28px 20px; text-align:center; overflow:hidden; min-height:180px; display:grid; place-items:center; }
-    .upload-zone::before { content:""; position:absolute; inset:12px; border-radius:14px; background:linear-gradient(135deg,rgba(89,184,255,.08),rgba(110,231,255,.03)); border:1px solid rgba(113,190,255,.08); pointer-events:none; }
+    .upload-zone { position:relative; border:1.5px dashed rgba(113,190,255,.32); border-radius:20px; background:linear-gradient(135deg,rgba(18,42,77,.9),rgba(13,22,42,.78)); padding:28px 20px; text-align:center; overflow:hidden; min-height:220px; display:grid; place-items:center; }
+    .upload-zone::before { content:""; position:absolute; inset:12px; border-radius:14px; background:linear-gradient(135deg,rgba(89,184,255,.08),rgba(110,231,255,.03)); border:1px solid rgba(113,190,255,.12); }
     .upload-zone.dragover { border-color:rgba(110,231,255,.6); box-shadow:0 0 0 4px rgba(89,184,255,.08); }
     .upload-content { position:relative; z-index:1; }
     .upload-icon { font-size:2.4rem; margin-bottom:8px; }
@@ -83,7 +83,7 @@
     .preview-box { background:rgba(7,18,31,.72); border:1px solid rgba(113,190,255,.12); border-radius:12px; padding:8px; min-width:0; }
     .preview-image { width:100%; height:160px; object-fit:contain; border-radius:10px; background:rgba(123,166,215,.08); }
     .preview-meta { margin-top:8px; color:var(--muted); font-size:.78rem; line-height:1.5; overflow-wrap:anywhere; }
-    .status-box { margin-top:16px; padding:12px 14px; border-radius:12px; font-size:.9rem; border:1px solid rgba(113,190,255,.14); background:rgba(17,35,63,.75); color:var(--silver); min-height:52px; display:flex; align-items:center; }
+    .status-box { margin-top:16px; padding:12px 14px; border-radius:12px; font-size:.9rem; border:1px solid rgba(113,190,255,.14); background:rgba(17,35,63,.75); color:var(--silver); min-height:52px; }
     .status-box.info { border-color:rgba(89,184,255,.18); color:var(--silver); }
     .status-box.success { border-color:rgba(72,213,154,.22); color:#c5f6dc; }
     .status-box.error { border-color:rgba(255,122,122,.22); color:#ffd6d6; }
@@ -101,19 +101,18 @@
     .mini-row strong { color:var(--text); }
     .feature-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-top:32px; }
     .feature-card { padding:22px 18px 20px; text-align:center; }
-    .feature-icon { width:56px; height:56px; margin:0 auto 12px; border-radius:16px; display:grid; place-items:center; background:rgba(89,184,255,.12); border:1px solid rgba(113,190,255,.12); color:var(--cyan); }
-    .feature-icon svg { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .feature-icon { width:56px; height:56px; margin:0 auto 12px; border-radius:16px; display:grid; place-items:center; background:rgba(89,184,255,.12); border:1px solid rgba(113,190,255,.12); color:var(--cyan); font-size:1.4rem; }
     .feature-card h3 { margin:0 0 8px; font-size:1.02rem; }
     .feature-card p { margin:0; color:var(--muted); line-height:1.7; font-size:.9rem; }
     .workflow-grid { margin-top:28px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
     .step-card { padding:22px 18px; }
-    .step-number { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:rgba(89,184,255,.18); border:1px solid rgba(113,190,255,.2); color:var(--cyan); font-weight:900; margin-bottom:12px; }
+    .step-number { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:rgba(89,184,255,.18); border:1px solid rgba(113,190,255,.18); color:var(--cyan); font-weight:900; }
     .step-card h3 { margin:0 0 8px; font-size:1.02rem; }
     .step-card p { margin:0; color:var(--muted); font-size:.9rem; line-height:1.7; }
-    .result-panel { margin-top:18px; padding:18px; border-radius:18px; background:linear-gradient(180deg,rgba(9,25,46,.92),rgba(12,31,56,.92)); border:1px solid rgba(113,190,255,.12); box-shadow:var(--shadow); }
+    .result-panel { margin-top:18px; padding:18px; border-radius:18px; background:linear-gradient(180deg,rgba(9,25,46,.92),rgba(12,31,56,.92)); border:1px solid rgba(113,190,255,.12); box-shadow:var(--shadow); scroll-margin-top:90px; }
     .result-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
     .result-header h2 { margin:0; font-size:1.3rem; }
-    .result-badge { display:inline-flex; align-items:center; border-radius:999px; padding:7px 12px; background:rgba(89,184,255,.08); border:1px solid rgba(113,190,255,.18); color:var(--silver); font-weight:700; font-size:.72rem; }
+    .result-badge { display:inline-flex; align-items:center; border-radius:999px; padding:7px 12px; background:rgba(89,184,255,.08); border:1px solid rgba(113,190,255,.18); color:var(--silver); font-size:.78rem; font-weight:700; }
     .result-content { display:grid; gap:14px; }
     .result-card { min-width:0; background:rgba(12,26,46,.8); border:1px solid rgba(113,190,255,.1); border-radius:14px; padding:14px 16px; overflow-wrap:anywhere; }
     .result-card h3 { margin:0 0 10px; font-size:1rem; }
@@ -124,7 +123,7 @@
     .confidence-pill.alert { background:rgba(255,122,122,.08); border-color:rgba(255,122,122,.18); color:#ffd7d7; }
     .result-evidence { width:100%; max-height:360px; object-fit:contain; border-radius:12px; margin-top:10px; background:rgba(7,18,31,.72); }
     .fine-warning { color:#ffebbb !important; }
-    .app-bottom-nav { position:fixed; inset-inline:0; bottom:0; z-index:40; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(6,23,45,.96); border-top:1px solid rgba(121,181,255,.18); box-shadow:0 -12px 24px rgba(2,8,17,.32); backdrop-filter:blur(16px); }
+    .app-bottom-nav { position:fixed; inset-inline:0; bottom:0; z-index:40; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); background:rgba(10,20,35,.7); backdrop-filter:blur(14px); border-top:1px solid rgba(118,181,255,.18); }
     .app-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:64px; border-radius:14px; color:#a9bedc; font-size:.7rem; font-weight:700; }
     .app-bottom-nav a.active { background:rgba(89,184,255,.12); color:var(--text); }
     .app-bottom-nav .nav-icon { font-size:1.2rem; line-height:1; }
@@ -174,12 +173,12 @@
           </div>
           <input class="hidden-input" id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
           <div class="preview-wrap" id="previewWrap" aria-live="polite">
-            <div class="preview-grid"><div class="preview-box"><img class="preview-image" id="previewImage" alt="待分析照片預覽"></div><div class="preview-box"><div class="preview-meta" id="previewMeta">尚未選擇影像</div></div></div>
+            <div class="preview-grid"><div class="preview-box"><img class="preview-image" id="previewImage" alt="待分析照片預覽"></div><div class="preview-box"><div class="preview-meta" id="previewMeta">未選擇照片</div></div></div>
           </div>
           <div class="status-box info" id="statusBox" role="status" aria-live="polite">等待上傳或選擇照片。</div>
         </div>
         <aside class="insight-panel" aria-label="系統概覽">
-          <div class="metric-card"><h2 class="metric-title">檢測概覽</h2><div class="metric-grid"><div class="metric"><strong>AI</strong><span>影像分析</span></div><div class="metric"><strong>證據</strong><span>優先判讀</span></div><div class="metric"><strong>人工</strong><span>必要時確認</span></div></div></div>
+          <div class="metric-card"><h2 class="metric-title">檢測概覽</h2><div class="metric-grid"><div class="metric"><strong>AI</strong><span>影像分析</span></div><div class="metric"><strong>證據</strong><span>逐項檢視</span></div><div class="metric"><strong>人工</strong><span>確認關鍵</span></div></div></div>
           <div class="metric-card"><h2 class="metric-title">分析原則</h2><div class="mini-list"><div class="mini-row"><span>照片品質不足</span><strong>提示補拍</strong></div><div class="mini-row"><span>官方法規資料不足</span><strong>標示需查證</strong></div><div class="mini-row"><span>法律判定</span><strong>需人工確認</strong></div></div></div>
         </aside>
       </section>
@@ -229,7 +228,8 @@
         previewMeta: document.getElementById('previewMeta'),
         statusBox: document.getElementById('statusBox'),
         resultContent: document.getElementById('resultContent'),
-        resultBadge: document.getElementById('resultBadge')
+        resultBadge: document.getElementById('resultBadge'),
+        resultPanel: document.getElementById('analysis-result')
       };
 
       function setStatus(message, tone) {
@@ -246,6 +246,13 @@
       function showEmptyResult(title, message, badge) {
         els.resultBadge.textContent = badge || '待判定';
         els.resultContent.innerHTML = '<article class="result-card"><h3>' + escapeHTML(title) + '</h3><p>' + escapeHTML(message) + '</p></article>';
+      }
+
+      function scrollToResult() {
+        if (!els.resultPanel) return;
+        requestAnimationFrame(function () {
+          els.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
       }
 
       function formatFine(violation) {
@@ -309,6 +316,7 @@
 
         els.resultContent.innerHTML = html;
         els.resultBadge.textContent = '分析完成・需人工檢視';
+        scrollToResult();
       }
 
       function readImageFile(file) {
