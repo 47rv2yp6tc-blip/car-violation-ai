@@ -1,4 +1,4 @@
-const CACHE = 'roadlens-shell-v4';
+const CACHE = 'roadlens-shell-v5';
 const SHELL = ['./index.html', './manifest.webmanifest', './mobile-app.css', './assets/lensy-mascot.svg'];
 
 self.addEventListener('install', (event) => {
