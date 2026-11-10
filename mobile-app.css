@@ -1,87 +1,9 @@
-/* iPhone-first app-shell layout overrides. Desktop rules remain untouched. */
-:root {
-  --app-safe-top: env(safe-area-inset-top, 0px);
-  --app-safe-right: env(safe-area-inset-right, 0px);
-  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --app-safe-left: env(safe-area-inset-left, 0px);
-  --app-nav-content-height: 60px;
-  --app-nav-total-height: calc(var(--app-nav-content-height) + 12px + var(--app-safe-bottom));
-}
-
+/* Mobile action hierarchy: primary actions lead, supporting actions stay compact. */
 @media (max-width: 768px) {
-  html {
-    min-height: 100%;
-    scroll-padding-top: calc(var(--app-safe-top) + 12px);
-    scroll-padding-bottom: calc(var(--app-nav-total-height) + 16px);
-    -webkit-text-size-adjust: 100%;
-    overscroll-behavior-y: contain;
-  }
-
-  /* Reserve exactly enough room for the fixed nav and home/gesture indicator. */
-  html body {
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding-bottom: calc(var(--app-nav-total-height) + 16px) !important;
-    padding-left: var(--app-safe-left);
-    padding-right: var(--app-safe-right);
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  html body .shell {
-    padding-top: calc(12px + var(--app-safe-top));
-    padding-right: 12px;
-    padding-bottom: 20px;
-    padding-left: 12px;
-  }
-
-  html body .app-bottom-nav {
-    position: fixed;
-    inset-inline-start: var(--app-safe-left);
-    inset-inline-end: var(--app-safe-right);
-    bottom: 0;
-    z-index: 100;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    min-height: var(--app-nav-total-height);
-    gap: 4px;
-    padding: 6px 8px calc(6px + var(--app-safe-bottom));
-    background: rgba(6, 23, 45, 0.97);
-    border-top: 1px solid rgba(118, 181, 255, 0.2);
-    box-shadow: 0 -8px 26px rgba(2, 8, 17, 0.3);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
-  }
-
-  html body .app-bottom-nav a {
-    display: flex;
-    min-width: 0;
-    min-height: 48px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    padding: 4px 2px;
-    border-radius: 12px;
-    color: #a7b8cf;
-    font-size: clamp(0.62rem, 2.7vw, 0.72rem);
-    font-weight: 700;
-    line-height: 1.15;
-    text-align: center;
-    text-decoration: none;
-    overflow-wrap: anywhere;
-    touch-action: manipulation;
-  }
-
-  html body .app-bottom-nav a[aria-current="page"],
-  html body .app-bottom-nav a.active {
-    color: #ecf5ff;
-    background: rgba(89, 184, 255, 0.13);
-  }
-
-  html body .app-bottom-nav .nav-icon {
-    display: block;
-    font-size: 1.15rem;
-    line-height: 1;
+  :root {
+    --app-button-height: 50px;
+    --app-button-radius: 12px;
+    --app-button-gap: 11px;
   }
 
   html body button,
@@ -89,59 +11,103 @@
   html body .action-btn,
   html body input[type="button"],
   html body input[type="submit"] {
-    min-height: 48px;
+    box-sizing: border-box;
+    min-height: var(--app-button-height);
+    max-width: 100%;
+    padding-inline: 16px;
+    border-radius: var(--app-button-radius);
+    font-weight: 750;
+    line-height: 1.2;
+    white-space: nowrap;
     touch-action: manipulation;
   }
 
-  html body .upload-zone {
-    min-height: 150px;
-    touch-action: manipulation;
+  html body button:focus-visible,
+  html body .btn:focus-visible,
+  html body .action-btn:focus-visible,
+  html body .app-bottom-nav a:focus-visible {
+    outline: 3px solid #9deaff;
+    outline-offset: 3px;
   }
 
-  html body .preview-image {
+  html body .cta-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--app-button-gap);
+  }
+
+  html body .cta-row .btn.primary {
     width: 100%;
-    height: min(42vh, 320px);
-    object-fit: contain;
   }
 
-  html body .dashboard,
-  html body .feature-strip,
-  html body .workflow-grid,
-  html body .metric-grid,
-  html body .preview-grid {
-    grid-template-columns: minmax(0, 1fr);
+  html body .cta-row .btn.secondary {
+    width: auto;
+    min-width: min(100%, 12rem);
+    align-self: center;
   }
 
-  html body .topbar {
-    padding-top: 8px;
+  html body .button-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--app-button-gap);
   }
 
-  html body :target {
-    scroll-margin-top: calc(var(--app-safe-top) + 12px);
-  }
-}
-
-@media (min-width: 769px) {
-  html body {
-    padding-bottom: 0 !important;
+  html body .button-row .action-btn {
+    width: 100%;
+    min-width: 0;
+    flex: initial;
   }
 
-  html body .app-bottom-nav {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+  /* Photo selection is a supporting pair; analysis remains the clear primary action. */
+  html body .button-row #startAnalysisBtn,
+  html body .button-row #cancelAnalysisBtn {
+    grid-column: 1 / -1;
   }
 
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+  html body .action-btn.secondary,
+  html body .btn.secondary {
+    background-color: rgba(15, 30, 54, 0.9);
+    border-color: rgba(113, 190, 255, 0.28);
+  }
+
+  html body button:disabled,
+  html body .btn:disabled,
+  html body .action-btn:disabled,
+  html body input:disabled {
+    opacity: 1;
+    color: #91a0b2;
+    background: rgba(91, 107, 126, 0.22);
+    border-color: rgba(153, 169, 188, 0.18);
+    box-shadow: none;
+    cursor: not-allowed;
+    filter: saturate(0.55);
+  }
+
+  html body button.danger,
+  html body .btn.danger,
+  html body .action-btn.danger,
+  html body [data-button-variant="danger"] {
+    color: #ffe4e4;
+    background: rgba(116, 35, 48, 0.42);
+    border: 1px solid rgba(255, 122, 122, 0.48);
+    box-shadow: none;
+  }
+
+  html body .app-bottom-nav a {
+    min-height: 50px;
+    gap: 4px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  html body .app-bottom-nav .nav-icon {
+    display: grid;
+    width: 1.25rem;
+    height: 1.25rem;
+    place-items: center;
+    flex: 0 0 1.25rem;
+    font-size: 1.15rem;
+    line-height: 1;
   }
 }
