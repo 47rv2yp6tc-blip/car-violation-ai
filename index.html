@@ -48,7 +48,7 @@
     .brand-text { display:flex; flex-direction:column; line-height:1.2; }
     .brand-text strong { font-size:1.05rem; letter-spacing:.04em; }
     .brand-text small { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
-    .status-pill { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px; background:rgba(89,184,255,.08); border:1px solid var(--line); color:var(--silver); font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .status-pill { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px; background:rgba(89,184,255,.08); border:1px solid var(--line); color:var(--silver); font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
     .status-pill::before { content:""; width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--green)); box-shadow:0 0 0 5px rgba(89,184,255,.12); }
     .hero { padding:62px 0 32px; text-align:center; }
     .eyebrow { margin:0 0 18px; color:var(--cyan); font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:.72rem; }
@@ -56,17 +56,17 @@
     .title-accent { background:linear-gradient(135deg,var(--cyan),var(--blue) 45%,#dff7ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
     .lead { max-width:750px; margin:20px auto 0; color:var(--muted); font-size:1.06rem; line-height:1.8; }
     .tag-row { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin-top:28px; }
-    .tag { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; background:rgba(17,35,63,.7); border:1px solid var(--line-soft); color:var(--silver); font-size:.78rem; font-weight:700; }
+    .tag { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; background:rgba(17,35,63,.7); border:1px solid var(--line-soft); color:var(--silver); font-size:.76rem; font-weight:700; }
     .tag::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--cyan); }
     .cta-row { display:flex; justify-content:center; flex-wrap:wrap; gap:14px; margin-top:30px; }
     .btn { display:inline-flex; align-items:center; justify-content:center; min-height:50px; padding:0 22px; border-radius:14px; font-weight:800; border:1px solid transparent; }
     .btn.primary { background:linear-gradient(135deg,var(--cyan),var(--blue) 55%,#3b8cff); color:var(--navy); box-shadow:0 16px 26px rgba(89,184,255,.24); }
     .btn.secondary { background:rgba(13,34,62,.8); border-color:rgba(113,190,255,.2); color:var(--text); }
     .dashboard { margin-top:22px; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(260px,.8fr); gap:22px; align-items:start; }
-    .panel,.metric-card,.feature-card,.step-card { background:linear-gradient(180deg,rgba(15,35,63,.9),rgba(11,25,46,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .panel,.metric-card,.feature-card,.step-card,.history-panel { background:linear-gradient(180deg,rgba(15,35,63,.9),rgba(11,25,46,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
     .panel { padding:22px; }
-    .upload-zone { position:relative; border:1.5px dashed rgba(113,190,255,.32); border-radius:20px; background:linear-gradient(135deg,rgba(18,42,77,.9),rgba(13,22,42,.78)); padding:28px 20px; text-align:center; overflow:hidden; min-height:220px; display:grid; place-items:center; }
-    .upload-zone::before { content:""; position:absolute; inset:12px; border-radius:14px; background:linear-gradient(135deg,rgba(89,184,255,.08),rgba(110,231,255,.03)); border:1px solid rgba(113,190,255,.12); }
+    .upload-zone { position:relative; border:1.5px dashed rgba(113,190,255,.32); border-radius:20px; background:linear-gradient(135deg,rgba(18,42,77,.9),rgba(13,22,42,.78)); padding:28px 20px; text-align:center; overflow:hidden; }
+    .upload-zone::before { content:""; position:absolute; inset:12px; border-radius:14px; background:linear-gradient(135deg,rgba(89,184,255,.08),rgba(110,231,255,.03)); border:1px solid rgba(113,190,255,.1); }
     .upload-zone.dragover { border-color:rgba(110,231,255,.6); box-shadow:0 0 0 4px rgba(89,184,255,.08); }
     .upload-content { position:relative; z-index:1; }
     .upload-icon { font-size:2.4rem; margin-bottom:8px; }
@@ -75,6 +75,7 @@
     .action-btn { flex:1 1 180px; min-height:48px; border-radius:14px; font-weight:800; border:1px solid rgba(113,190,255,.2); }
     .action-btn.primary { background:linear-gradient(135deg,var(--cyan),var(--blue)); color:var(--navy); }
     .action-btn.secondary { background:rgba(15,30,54,.8); color:var(--text); }
+    .action-btn.small { flex:0 0 auto; min-height:38px; padding:0 16px; }
     .action-btn:disabled { opacity:.58; cursor:wait; }
     .hidden-input { display:none; }
     .preview-wrap { margin-top:18px; display:none; background:rgba(11,25,46,.66); border:1px solid rgba(113,190,255,.14); border-radius:16px; padding:12px; }
@@ -83,7 +84,7 @@
     .preview-box { background:rgba(7,18,31,.72); border:1px solid rgba(113,190,255,.12); border-radius:12px; padding:8px; min-width:0; }
     .preview-image { width:100%; height:160px; object-fit:contain; border-radius:10px; background:rgba(123,166,215,.08); }
     .preview-meta { margin-top:8px; color:var(--muted); font-size:.78rem; line-height:1.5; overflow-wrap:anywhere; }
-    .status-box { margin-top:16px; padding:12px 14px; border-radius:12px; font-size:.9rem; border:1px solid rgba(113,190,255,.14); background:rgba(17,35,63,.75); color:var(--silver); min-height:52px; }
+    .status-box { margin-top:16px; padding:12px 14px; border-radius:12px; font-size:.9rem; border:1px solid rgba(113,190,255,.14); background:rgba(17,35,63,.75); color:var(--silver); min-height:52px; display:flex; align-items:center; }
     .status-box.info { border-color:rgba(89,184,255,.18); color:var(--silver); }
     .status-box.success { border-color:rgba(72,213,154,.22); color:#c5f6dc; }
     .status-box.error { border-color:rgba(255,122,122,.22); color:#ffd6d6; }
@@ -109,21 +110,34 @@
     .step-number { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:rgba(89,184,255,.18); border:1px solid rgba(113,190,255,.18); color:var(--cyan); font-weight:900; }
     .step-card h3 { margin:0 0 8px; font-size:1.02rem; }
     .step-card p { margin:0; color:var(--muted); font-size:.9rem; line-height:1.7; }
-    .result-panel { margin-top:18px; padding:18px; border-radius:18px; background:linear-gradient(180deg,rgba(9,25,46,.92),rgba(12,31,56,.92)); border:1px solid rgba(113,190,255,.12); box-shadow:var(--shadow); scroll-margin-top:90px; }
+    .result-panel { margin-top:18px; padding:18px; border-radius:18px; background:linear-gradient(180deg,rgba(9,25,46,.92),rgba(12,31,56,.92)); border:1px solid rgba(113,190,255,.12); box-shadow:var(--shadow); }
     .result-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
     .result-header h2 { margin:0; font-size:1.3rem; }
-    .result-badge { display:inline-flex; align-items:center; border-radius:999px; padding:7px 12px; background:rgba(89,184,255,.08); border:1px solid rgba(113,190,255,.18); color:var(--silver); font-size:.78rem; font-weight:700; }
+    .result-badge { display:inline-flex; align-items:center; border-radius:999px; padding:7px 12px; background:rgba(89,184,255,.08); border:1px solid rgba(113,190,255,.18); color:var(--silver); font-size:.75rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
     .result-content { display:grid; gap:14px; }
     .result-card { min-width:0; background:rgba(12,26,46,.8); border:1px solid rgba(113,190,255,.1); border-radius:14px; padding:14px 16px; overflow-wrap:anywhere; }
     .result-card h3 { margin:0 0 10px; font-size:1rem; }
     .result-card p,.result-card li { color:var(--muted); line-height:1.7; font-size:.92rem; }
     .result-card ul { margin:0; padding-left:18px; }
-    .confidence-pill { display:inline-flex; align-items:center; padding:5px 9px; border-radius:999px; background:rgba(72,213,154,.08); border:1px solid rgba(72,213,154,.18); color:#d3ffe9; font-size:.74rem; font-weight:800; }
+    .confidence-pill { display:inline-flex; align-items:center; padding:5px 9px; border-radius:999px; background:rgba(72,213,154,.08); border:1px solid rgba(72,213,154,.18); color:#d3ffe9; font-size:.72rem; font-weight:800; }
     .confidence-pill.warn { background:rgba(246,198,110,.08); border-color:rgba(246,198,110,.18); color:#ffebbb; }
     .confidence-pill.alert { background:rgba(255,122,122,.08); border-color:rgba(255,122,122,.18); color:#ffd7d7; }
     .result-evidence { width:100%; max-height:360px; object-fit:contain; border-radius:12px; margin-top:10px; background:rgba(7,18,31,.72); }
     .fine-warning { color:#ffebbb !important; }
-    .app-bottom-nav { position:fixed; inset-inline:0; bottom:0; z-index:40; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); background:rgba(10,20,35,.7); backdrop-filter:blur(14px); border-top:1px solid rgba(118,181,255,.18); }
+    .history-panel { margin-top:22px; padding:18px; }
+    .history-header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+    .history-header h2 { margin:0; font-size:1.15rem; }
+    .history-list { display:grid; gap:10px; }
+    .history-item { display:grid; grid-template-columns:82px 1fr auto; gap:10px; align-items:center; width:100%; padding:12px 14px; border:1px solid rgba(113,190,255,.12); border-radius:12px; background:rgba(12,26,46,.66); text-align:left; color:inherit; }
+    .history-item:hover { border-color:rgba(110,231,255,.28); }
+    .history-item.active { border-color:rgba(110,231,255,.42); background:rgba(17,35,63,.85); }
+    .history-thumb { width:82px; height:82px; object-fit:cover; border-radius:10px; background:rgba(123,166,215,.08); }
+    .history-meta { display:grid; gap:4px; min-width:0; }
+    .history-date { color:var(--muted); font-size:.72rem; letter-spacing:.04em; }
+    .history-summary { font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .history-violations { color:var(--muted); font-size:.8rem; }
+    .history-empty { padding:18px; border:1px dashed rgba(113,190,255,.22); border-radius:12px; color:var(--muted); text-align:center; }
+    .app-bottom-nav { position:fixed; inset-inline:0; bottom:0; z-index:40; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:rgba(9,16,29,.88); backdrop-filter:blur(14px); border-top:1px solid rgba(113,190,255,.12); }
     .app-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:64px; border-radius:14px; color:#a9bedc; font-size:.7rem; font-weight:700; }
     .app-bottom-nav a.active { background:rgba(89,184,255,.12); color:var(--text); }
     .app-bottom-nav .nav-icon { font-size:1.2rem; line-height:1; }
@@ -135,6 +149,8 @@
       .btn,.action-btn { width:100%; }
       .metric-grid,.preview-grid { grid-template-columns:1fr; }
       .hero { padding-top:46px; }
+      .history-item { grid-template-columns:72px 1fr; }
+      .history-item > span:last-child { grid-column:1 / -1; justify-self:end; }
     }
     @media (min-width:769px) { .app-bottom-nav { display:none; } }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; transition-duration:.01ms !important; } }
@@ -171,15 +187,15 @@
             <button class="action-btn primary" id="startAnalysisBtn" type="button">開始分析</button>
             <button class="action-btn secondary" id="cancelAnalysisBtn" type="button" hidden>取消分析</button>
           </div>
-          <input class="hidden-input" id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+          <input class="hidden-input" id="fileInput" type="file" accept="image/jpeg,image/png,image/webp">
           <div class="preview-wrap" id="previewWrap" aria-live="polite">
-            <div class="preview-grid"><div class="preview-box"><img class="preview-image" id="previewImage" alt="待分析照片預覽"></div><div class="preview-box"><div class="preview-meta" id="previewMeta">未選擇照片</div></div></div>
+            <div class="preview-grid"><div class="preview-box"><img class="preview-image" id="previewImage" alt="待分析照片預覽"></div><div class="preview-box"><div class="preview-meta" id="previewMeta">等待照片</div></div></div>
           </div>
           <div class="status-box info" id="statusBox" role="status" aria-live="polite">等待上傳或選擇照片。</div>
         </div>
         <aside class="insight-panel" aria-label="系統概覽">
-          <div class="metric-card"><h2 class="metric-title">檢測概覽</h2><div class="metric-grid"><div class="metric"><strong>AI</strong><span>影像分析</span></div><div class="metric"><strong>證據</strong><span>逐項檢視</span></div><div class="metric"><strong>人工</strong><span>確認關鍵</span></div></div></div>
-          <div class="metric-card"><h2 class="metric-title">分析原則</h2><div class="mini-list"><div class="mini-row"><span>照片品質不足</span><strong>提示補拍</strong></div><div class="mini-row"><span>官方法規資料不足</span><strong>標示需查證</strong></div><div class="mini-row"><span>法律判定</span><strong>需人工確認</strong></div></div></div>
+          <div class="metric-card"><h2 class="metric-title">檢測概覽</h2><div class="metric-grid"><div class="metric"><strong>AI</strong><span>影像分析</span></div><div class="metric"><strong>1</strong><span>單次送出</span></div><div class="metric"><strong>3</strong><span>關鍵檢查</span></div></div></div>
+          <div class="metric-card"><h2 class="metric-title">分析原則</h2><div class="mini-list"><div class="mini-row"><span>照片品質不足</span><strong>提示補拍</strong></div><div class="mini-row"><span>法規資料不足</span><strong>需查證</strong></div><div class="mini-row"><span>AI 判定</span><strong>非正式裁罰</strong></div></div></div>
         </aside>
       </section>
       <section class="feature-strip" aria-label="產品亮點">
@@ -196,6 +212,13 @@
         <div class="result-header"><h2>分析結果</h2><span class="result-badge" id="resultBadge">待判定</span></div>
         <div class="result-content" id="resultContent"><div class="result-card"><h3>尚未分析</h3><p>選擇照片後開始分析，結果會顯示於此。</p></div></div>
       </section>
+      <section class="history-panel" id="history-panel" aria-live="polite">
+        <div class="history-header">
+          <h2>分析紀錄</h2>
+          <button class="action-btn secondary small" id="clearHistoryBtn" type="button">清除紀錄</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
     </main>
   </div>
   <nav class="app-bottom-nav" aria-label="底部導覽">
@@ -208,11 +231,13 @@
     (function () {
       'use strict';
 
+      const HISTORY_KEY = 'roadlens-analysis-history-v1';
       const state = {
         activeImage: '',
         activeMime: '',
         requestState: 'idle',
-        controller: null
+        controller: null,
+        selectedHistoryId: null
       };
       const els = {
         uploadZone: document.getElementById('uploadZone'),
@@ -229,7 +254,9 @@
         statusBox: document.getElementById('statusBox'),
         resultContent: document.getElementById('resultContent'),
         resultBadge: document.getElementById('resultBadge'),
-        resultPanel: document.getElementById('analysis-result')
+        resultPanel: document.getElementById('analysis-result'),
+        historyList: document.getElementById('historyList'),
+        clearHistoryBtn: document.getElementById('clearHistoryBtn')
       };
 
       function setStatus(message, tone) {
@@ -347,12 +374,84 @@
         });
       }
 
+      function readHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function writeHistory(items) {
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
+        } catch (error) {
+          setStatus('歷史紀錄暫時無法保存，請稍後再試。', 'error');
+        }
+      }
+
+      function saveHistoryEntry(result) {
+        if (!state.activeImage) return;
+        const entries = readHistory();
+        const entry = {
+          id: Date.now() + '-' + Math.random().toString(16).slice(2),
+          createdAt: new Date().toISOString(),
+          image: state.activeImage,
+          mimeType: state.activeMime,
+          summary: result.summary || '未提供摘要',
+          result: result
+        };
+
+        const next = [entry].concat(entries).slice(0, 10);
+        writeHistory(next);
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const entries = readHistory();
+        if (!entries.length) {
+          els.historyList.innerHTML = '<div class="history-empty">尚未有任何分析紀錄，先分析一張照片後即可保留結果。</div>';
+          return;
+        }
+
+        els.historyList.innerHTML = entries.map(function (entry) {
+          const summary = escapeHTML(entry.summary || '未提供摘要');
+          const violations = Array.isArray(entry.result && entry.result.violations) ? entry.result.violations : [];
+          const title = escapeHTML((violations[0] && (violations[0].violation || violations[0].type)) || '待判定');
+          const isActive = entry.id === state.selectedHistoryId ? ' active' : '';
+          const date = new Date(entry.createdAt).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          return '<button class="history-item' + isActive + '" data-history-id="' + escapeHTML(entry.id) + '" type="button">' +
+            '<img class="history-thumb" src="' + escapeHTML(entry.image) + '" alt="歷史紀錄縮圖">' +
+            '<span class="history-meta"><span class="history-date">' + escapeHTML(date) + '</span><span class="history-summary">' + summary + '</span><span class="history-violations">' + title + '</span></span>' +
+            '<span>查看</span>' +
+            '</button>';
+        }).join('');
+
+        els.historyList.querySelectorAll('.history-item').forEach(function (button) {
+          button.addEventListener('click', function () {
+            const id = button.getAttribute('data-history-id');
+            const entry = readHistory().find(function (item) { return item.id === id; });
+            if (!entry) return;
+            state.selectedHistoryId = id;
+            state.activeImage = entry.image;
+            state.activeMime = entry.mimeType || 'image/jpeg';
+            els.previewImage.src = entry.image;
+            els.previewMeta.textContent = '歷史紀錄 · ' + new Date(entry.createdAt).toLocaleString('zh-TW');
+            els.previewWrap.classList.add('visible');
+            renderAnalysis(entry.result || {});
+            setStatus('已載入歷史紀錄，請重新檢視結果。', 'info');
+            renderHistory();
+          });
+        });
+      }
+
       async function handleFiles(list) {
         if (!list || !list.length) return;
         try {
           const photo = await readImageFile(list[0]);
           state.activeImage = photo.dataUrl;
           state.activeMime = photo.mimeType;
+          state.selectedHistoryId = null;
           els.previewImage.src = photo.dataUrl;
           els.previewMeta.textContent = photo.fileName + ' · ' + photo.mimeType + ' · ' + photo.width + '×' + photo.height;
           els.previewWrap.classList.add('visible');
@@ -391,6 +490,7 @@
           if (!response.ok) throw new Error(payload.error || '分析失敗，請稍後再試。');
           if (!payload || !Array.isArray(payload.violations)) throw new Error('分析回應格式不正確，請稍後再試。');
           renderAnalysis(payload);
+          saveHistoryEntry(payload);
           setStatus('分析完成。請人工檢視證據與法規資料，AI 結果不是正式裁罰。', 'success');
         } catch (error) {
           if (error.name === 'AbortError') {
@@ -428,6 +528,12 @@
       els.viewFlowBtn.addEventListener('click', function () {
         document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
+      els.clearHistoryBtn.addEventListener('click', function () {
+        localStorage.removeItem(HISTORY_KEY);
+        state.selectedHistoryId = null;
+        renderHistory();
+        setStatus('已清除所有分析紀錄。', 'info');
+      });
 
       ['dragenter', 'dragover'].forEach(function (type) {
         els.uploadZone.addEventListener(type, function (event) { event.preventDefault(); els.uploadZone.classList.add('dragover'); });
@@ -451,6 +557,8 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
       }
+
+      renderHistory();
     })();
   </script>
 </body>
