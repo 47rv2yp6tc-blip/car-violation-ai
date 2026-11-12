@@ -21,6 +21,13 @@
     }
   }
 
+  function detectionTypes(violations) {
+    if (!Array.isArray(violations) || !violations.length) return ['未確認／未偵測到可確認違規'];
+    return Array.from(new Set(violations.map(function (item) {
+      return String(item && (item.violation || item.type || item.violation_type) || '未分類').trim();
+    }).filter(Boolean)));
+  }
+
   function fineText(item) {
     if (!item || item.fine_min == null || item.fine_max == null || item.fine_status !== 'calculated') {
       return '官方資料不足，需查證；請勿視為正式裁罰金額。';
@@ -34,10 +41,13 @@
     var quality = result.quality || {};
     var observed = Array.isArray(result.observed_facts) ? result.observed_facts : [];
     var issues = Array.isArray(quality.issues) ? quality.issues : [];
+    var types = detectionTypes(violations);
     var created = new Date(record.createdAt);
     var dateText = Number.isNaN(created.getTime()) ? '時間不詳' : created.toLocaleString('zh-TW');
     var items = violations.length ? violations.map(function (item, index) {
-      return '<section class="card"><h2>' + (index + 1) + '. ' + escapeHTML(item.violation || item.type || '無法從照片確認') + '</h2>' +
+      var type = item && (item.violation || item.type || item.violation_type) || '未分類';
+      return '<section class="card"><h2>' + (index + 1) + '. ' + escapeHTML(type) + '</h2>' +
+        '<p><strong>偵測類型：</strong>' + escapeHTML(type) + '</p>' +
         '<p><strong>AI 信心度：</strong>' + escapeHTML(item.confidence == null ? '未提供' : item.confidence + '%') + '</p>' +
         '<p><strong>人工確認：</strong>' + (item.needs_human_review || item.uncertain ? '待人工確認' : '仍建議人工檢視；AI 結果不是法律判定') + '</p>' +
         '<p><strong>證據：</strong>' + escapeHTML(item.evidence || '未提供') + '</p>' +
@@ -58,6 +68,7 @@
       '<div class="actions"><button type="button" onclick="window.print()">列印 / 另存為 PDF</button></div>' +
       '<h1>RoadLens AI 分析報告</h1><p class="muted">分析時間：' + escapeHTML(dateText) + '</p>' +
       '<section class="card"><h2>分析摘要</h2><p>' + escapeHTML(result.summary || record.summary || '未提供摘要') + '</p>' +
+      '<p><strong>偵測類型：</strong>' + types.map(escapeHTML).join('、') + '</p>' +
       '<p><strong>照片品質：</strong>' + (quality.usable ? '可供檢視' : '品質不足或無法確認，請人工檢視') + '</p>' + escapeHTML(quality.explanation || '') + issueList + '</section>' +
       observedList + items + image +
       '<section class="card"><h2>估算總額（僅供參考）</h2><p>' + (result.estimated_fine_min == null || result.estimated_fine_max == null ? '官方資料不足，需查證；不代表正式罰鍰。' : 'NT$ ' + Number(result.estimated_fine_min).toLocaleString('zh-TW') + ' – NT$ ' + Number(result.estimated_fine_max).toLocaleString('zh-TW') + '；需人工確認。') + '</p></section>' +
