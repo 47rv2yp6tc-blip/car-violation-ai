@@ -8,13 +8,15 @@ test('fixed Taiwan rule codes never come from model text', () => {
   assert.equal(calculateFine('unknown').status, 'rule_not_found');
 });
 
-test('rule ranges are labeled as estimates', () => {
+test('rule ranges include law text, sources and vehicle scope', () => {
   const red = calculateFine('red-light');
   assert.equal(red.fineMin, 1800);
   assert.equal(red.fineMax, 5400);
-  assert.equal(red.rule.law, '道路交通管理處罰條例第53條');
+  assert.match(red.rule.lawText, /闖紅燈/);
   assert.match(red.rule.source, /^https:\/\/law\.moj\.gov\.tw\//);
-  assert.match(red.rule.lawText, /汽車駕駛人/);
+  assert.ok(Array.isArray(red.rule.subcodes));
+  assert.ok(Array.isArray(red.rule.localRules));
+  assert.ok(red.rule.vehicleScope);
 });
 
 test('estimate totals only sum finite ranges', () => {

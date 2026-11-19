@@ -11,7 +11,7 @@ export function calculateFine(code) {
   if (!rule) return { rule:null, fineMin:null, fineMax:null, status:'rule_not_found' };
   const fineMin = toFineValue(rule.fineMin);
   const fineMax = toFineValue(rule.fineMax);
-  return { rule:{ id:rule.id,name:rule.name,description:rule.description||'',law:rule.law||'',lawText:rule.lawText||'',ruleVersion:rule.ruleVersion||'unversioned',lastUpdated:rule.effectiveDate||null,source:rule.source||'',jurisdiction:rule.jurisdiction||'',vehicleScope:rule.vehicleScope||'',subcodes:rule.subcodes||[],fineNote:rule.fineNote||'' }, fineMin, fineMax, status: rule.fineStatus==='estimated_range' ? 'estimated_range' : 'calculated' };
+  return { rule:{ id:rule.id,name:rule.name,description:rule.description||'',law:rule.law||'',lawText:rule.lawText||'',ruleVersion:rule.ruleVersion||'unversioned',lastUpdated:rule.effectiveDate||null,source:rule.source||'',jurisdiction:rule.jurisdiction||'',vehicleScope:rule.vehicleScope||'',subcodes:rule.subcodes||[],fineNote:rule.fineNote||'',localRules:Array.isArray(rule.localRules)?rule.localRules:[] }, fineMin, fineMax, status: rule.fineStatus==='estimated_range' ? 'estimated_range' : 'calculated' };
 }
 
 export function calculateTotal(items) {
