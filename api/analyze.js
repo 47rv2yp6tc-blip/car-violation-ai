@@ -45,19 +45,24 @@ function normalizeResult(parsed) {
 
   const violations = parsed.violations.map((item) => {
     const confidence = clampConfidence(item?.confidence);
-    const violation = String(item?.violation || item?.violation_type || '無法從此照片確認');
+    const rawCode = typeof item?.violation_code === 'string' ? item.violation_code : 'unknown';
+    const ruleCalculation = calculateFine(rawCode);
+    const violationCode = ruleCalculation.rule ? rawCode : 'unknown';
+    const violation = String(ruleCalculation.rule?.name || item?.violation || '無法從此照片確認');
     const contradictions = asStrings(item?.contradictions);
     const missingEvidence = asStrings(item?.missing_evidence);
     const providedInformation = asStrings(item?.additionalInformation);
     const additionalInformation = [...new Set([...missingEvidence, ...providedInformation])].slice(0, 10);
-    const uncertain = Boolean(item?.uncertain) || confidence < 50 || violation.includes('無法');
+    const uncertain = Boolean(item?.uncertain) || confidence < 50 || violation.includes('無法') || !ruleCalculation.rule;
     if (uncertain && additionalInformation.length === 0) {
-      additionalInformation.push('目前證據不足以確認，請人工檢視並考慮補充更清晰的照片或相關道路環境資訊。');
+      additionalInformation.push(!ruleCalculation.rule
+        ? '違規類型代碼未知或不在支援清單中，未套用法規；請人工確認。'
+        : '目前證據不足以確認，請人工檢視並考慮補充更清晰的照片或相關道路環境資訊。');
     }
-    const ruleCalculation = calculateFine(violation);
 
     return {
       type: violation,
+      violation_code: violationCode,
       violation_type: violation,
       violation,
       confidence,
