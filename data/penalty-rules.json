@@ -1,62 +1,16 @@
 [
   {
-    "id": "red-light",
-    "name": "疑似闖紅燈",
-    "description": "行經有燈光號誌管制之交岔路口闖紅燈。紅燈右轉另有較低罰鍰區間。",
-    "law": "道路交通管理處罰條例第53條",
-    "lawText": "汽車駕駛人，行經有燈光號誌管制之交岔路口闖紅燈者，處新臺幣一千八百元以上五千四百元以下罰鍰。前項紅燈右轉行為者，處新臺幣六百元以上一千八百元以下罰鍰。",
-    "fineMin": 1800,
-    "fineMax": 5400,
-    "fineStatus": "estimated_range",
-    "fineNote": "一般闖紅燈估計區間；紅燈右轉為NT$600–1,800。實際裁罰須人工核對條款及車種。",
-    "effectiveDate": "2026-10-31",
-    "ruleVersion": "Taiwan-nationwide-53-55-56-60-v1",
-    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=53",
-    "jurisdiction": "Taiwan"
+    "id":"red-light","name":"疑似闷紅燈","description":"行經有燈光號誌管制之交岔路口闖紅燈。","law":"道路交通管理處罰條例第53條","lawText":"汽車駕駛人，行經有燈光號誌管制之交岔路口闖紅燈者，處新臺幣一千八百元以上五千四百元以下罰鍰。前項紅燈右轉行為者，處新臺幣六百元以上一千八百元以下罰鍰。","fineMin":1800,"fineMax":5400,"fineStatus":"estimated_range","fineNote":"一般闖紅燈估計範圍；紅燈右轉為NT$600–1,800。須人工核對影片或號誌方向。
+",
+    "effectiveDate":"2026-10-31","ruleVersion":"Taiwan-nationwide-53-55-56-60-v2","source":"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=53","jurisdiction":"Taiwan","vehicleScope":"汽車；其他車種應依母法、處罰基準及現行裁罰規定核對","subcodes":["red-light-general","red-light-turn"]
   },
   {
-    "id": "parking",
-    "name": "疑似違規停車／禁停處停車",
-    "description": "停車違反禁止停車、標誌、標線、位置、方向或妨礙通行等規定；併排停車另有高額罰則。",
-    "law": "道路交通管理處罰條例第56條",
-    "lawText": "汽車駕駛人停車時，有下列情形之一者，處新臺幣六百元以上一千二百元以下罰鍰：一、在禁止臨時停車處所停車。二、在設有彎道、險坡、狹路標誌之路段、槽化線、交通島或道路修理地段停車。三、在機場、車站、碼頭、學校、娛樂、展覽、競技、市場、或其他公共場所出、入口或消防栓之前停車。四、在設有禁止停車標誌、標線之處所停車。五、在顯有妨礙其他人、車通行處所停車。六、不依順行方向，或不緊靠道路右側，或單行道不緊靠路邊停車。七、於路邊劃有停放車輛線之處所停車營業。八、自用汽車在營業汽車招呼站停車。九、停車時間、位置、方式、車種不依規定。十、於身心障礙專用停車位違規停車。汽車駕駛人停車時，有併排停車之情事者，處汽車駕駛人新臺幣一千八百元以上三千元以下罰鍰。",
-    "fineMin": 600,
-    "fineMax": 1200,
-    "fineStatus": "estimated_range",
-    "fineNote": "一般停車違規估計區間；併排停車為NT$1,800–3,000。十款身障專用位應最高額處罰等情形須另查。",
-    "effectiveDate": null,
-    "ruleVersion": "Taiwan-nationwide-53-55-56-60-v1",
-    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=56",
-    "jurisdiction": "Taiwan"
+    "id":"parking","name":"疑似違規停車／禁停處停車","description":"違反禁止停車、標誌、標線、位置、方向或妨礙通行等規定。","law":"道路交通管理處罰條例第56條","lawText":"汽車駕駛人停車時，有下列情形之一者，處新臺幣六百元以上一千二百元以下罰鍰：在禁止臨時停車處所停車；在彎道、險坡、狹路、槽化線、交通島或道路修理地段停車；在公共場所出入口、消防栓前停車；在禁止停車標誌、標線處所停車；在顯有妨礙通行處所停車；不依順行方向或不緊靠道路右側停車；其他依規定不得停車之情形。併排停車另處新臺幣一千八百元以上三千元以下罰鍰。","fineMin":600,"fineMax":1200,"fineStatus":"estimated_range","fineNote":"一般停車違規估計範圍；併排為NT$1,800–3,000；身障專用位、超時、車種及特殊地點須另查。","effectiveDate":"pending-official-notice","ruleVersion":"Taiwan-nationwide-53-55-56-60-v2","source":"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=56","jurisdiction":"Taiwan","vehicleScope":"汽車；機車、大型車及營業車另依母法及裁罰基準核對","subcodes":["no-parking-sign","no-parking-line","handicap-space","parking-time-location-method","parking-bus-stop"]
   },
   {
-    "id": "lane-line",
-    "name": "疑似違反道路標線",
-    "description": "未依道路交通標誌、標線、號誌指示行駛；須依影像辨認具體標誌或標線種類。",
-    "law": "道路交通管理處罰條例第60條",
-    "lawText": "汽車駕駛人有下列行為之一者，處新臺幣六百元以上一千八百元以下罰鍰：一、不依道路交通標誌、標線、號誌之指示行駛。二、不遵守交通指揮人員之指揮。",
-    "fineMin": 600,
-    "fineMax": 1800,
-    "fineStatus": "estimated_range",
-    "fineNote": "標誌、標線或號誌違規估計區間。該條與酒駕第60條問題無關；須核對其他款次及裁罰基準。",
-    "effectiveDate": null,
-    "ruleVersion": "Taiwan-nationwide-53-55-56-60-v1",
-    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=60",
-    "jurisdiction": "Taiwan"
+    "id":"lane-line","name":"疑似違反道路標線","description":"未依道路交通標誌、標線、號誌指示行駛。","law":"道路交通管理處罰條例第60條","lawText":"汽車駕駛人有下列行為之一者，處新臺幣六百元以上一千八百元以下罰鍰：一、不依道路交通標誌、標線、號誌之指示行駛。二、不遵守交通指揮人員之指揮。","fineMin":600,"fineMax":1800,"fineStatus":"estimated_range","fineNote":"標誌、標線、號誌違規估計範圍；須核對實際標線與行駛動態。","effectiveDate":null,"ruleVersion":"Taiwan-nationwide-53-55-56-60-v2","source":"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=60","jurisdiction":"Taiwan","vehicleScope":"汽車；須依車種及道路類型核對","subcodes":["lane-marking","no-turn","direction-marking","traffic-signal-violation","traffic-controller"]
   },
   {
-    "id": "double-parking",
-    "name": "疑似併排／違規臨時停車",
-    "description": "臨時停車違反方向、路邊、禁止處所或距離限制；停車併排則依第56條。",
-    "law": "道路交通管理處罰條例第55條、第56條",
-    "lawText": "第55條：汽車駕駛人有下列行為之一者，處新臺幣六百元以上一千二百元以下罰鍰：臨時停車未依順行方向、未緊靠道路右側、未完全停入路邊停車位；未關妥車門、未設置燈光或標識；臨時停車後未立即行駛；於禁止處所、禁停標誌標線處所、或特定距離內臨時停車等。第56條另規定併排停車罰鍰。",
-    "fineMin": 600,
-    "fineMax": 3000,
-    "fineStatus": "estimated_range",
-    "fineNote": "合併第55條與第56條估計區間：一般臨時停車NT$600–1,200，併排停車NT$1,800–3,000。不得視為單一已確認正式裁罰。",
-    "effectiveDate": null,
-    "ruleVersion": "Taiwan-nationwide-53-55-56-60-v1",
-    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=55",
-    "jurisdiction": "Taiwan"
+    "id":"double-parking","name":"疑似併排／違規臨時停車","description":"臨時停車違反方向、路邊、禁止處所或距離限制；停車併排依第56條。","law":"道路交通管理處罰條例第55條、第56條","lawText":"第55條：汽車駕駛人臨時停車未依順行方向、未緊靠道路右側、未完全停入路邊停車位、未關妥車門或設置燈光標識、臨時停車後未立即行駛、於禁止處所或特定距離內臨時停車者，處新臺幣六百元以上一千二百元以下罰鍰。第56條併排停車處新臺幣一千八百元以上三千元以下罰鍰。","fineMin":600,"fineMax":3000,"fineStatus":"estimated_range","fineNote":"合併第55、56條估計範圍：一般臨時停車NT$600–1,200；併排NT$1,800–3,000。不得視為正式裁罰。","effectiveDate":null,"ruleVersion":"Taiwan-nationwide-53-55-56-60-v2","source":"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=55","jurisdiction":"Taiwan","vehicleScope":"汽車；實際態樣須區分臨時停車與停車","subcodes":["temporary-stop-direction","temporary-stop-prohibited","double-parking","bus-stop-clearance","intersection-clearance"]
   }
 ]
