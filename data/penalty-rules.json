@@ -1,6 +1,58 @@
 [
-  {"id":"red-light","name":"疑似闖紅燈","description":"疑似未依號誌通行","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"ruleVersion":"unconfigured","lastUpdated":null,"source":"未設定官方來源；部署前請由所在地主管機關填入官方資料"},
-  {"id":"parking","name":"疑似禁停區停車","description":"疑似停放於禁止停車區域","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"ruleVersion":"unconfigured","lastUpdated":null,"source":"未設定官方來源；部署前請由所在地主管機關填入官方資料"},
-  {"id":"lane-line","name":"疑似違反道路標線","description":"疑似未依道路標線行駛或停車","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"ruleVersion":"unconfigured","lastUpdated":null,"source":"未設定官方來源；部署前請由所在地主管機關填入官方資料"},
-  {"id":"double-parking","name":"疑似併排／臨時停車","description":"疑似併排或不當臨時停車","law":"依所在地道路交通管理法規查證","fineMin":null,"fineMax":null,"effectiveDate":null,"ruleVersion":"unconfigured","lastUpdated":null,"source":"未設定官方來源；部署前請由所在地主管機關填入官方資料"}
+  {
+    "id": "red-light",
+    "name": "疑似闖紅燈",
+    "description": "汽車駕駛人行經有燈光號誌管制之交岔路口闖紅燈；紅燈右轉適用不同範圍，需另行判定。",
+    "law": "道路交通管理處罰條例第53條（紅燈右轉另有規定）",
+    "fineMin": 1800,
+    "fineMax": 5400,
+    "fineStatus": "estimated_range",
+    "fineNote": "估計範圍；實際裁罰依行為態樣、車種及現行裁罰基準確認。",
+    "effectiveDate": null,
+    "ruleVersion": "Taiwan-nationwide-v1",
+    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=53",
+    "jurisdiction": "Taiwan"
+  },
+  {
+    "id": "parking",
+    "name": "疑似違規停車／禁停處停車",
+    "description": "一般違規停車；特定地點、車種或情況可能有不同規定。",
+    "law": "道路交通管理處罰條例第56條；個案應核對具體款次及裁罰基準",
+    "fineMin": 600,
+    "fineMax": 1200,
+    "fineStatus": "estimated_range",
+    "fineNote": "估計範圍，並非正式裁罰金額；應依違規態樣與官方裁罰基準確認。",
+    "effectiveDate": null,
+    "ruleVersion": "Taiwan-nationwide-v1",
+    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=56",
+    "jurisdiction": "Taiwan"
+  },
+  {
+    "id": "lane-line",
+    "name": "疑似違反道路標線",
+    "description": "違規態樣需依影像中標線種類、車輛動態及適用條文判定。",
+    "law": "道路交通管理處罰條例第60條；具體適用條文須依違規態樣確認",
+    "fineMin": 600,
+    "fineMax": 1800,
+    "fineStatus": "estimated_range",
+    "fineNote": "估計範圍；不同標線及行為可能適用不同法條與罰鍰，須人工查證。",
+    "effectiveDate": null,
+    "ruleVersion": "Taiwan-nationwide-v1",
+    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=60",
+    "jurisdiction": "Taiwan"
+  },
+  {
+    "id": "double-parking",
+    "name": "疑似併排／違規臨時停車",
+    "description": "影像通常無法可靠區分臨時停車與停車；臨時停車可能適用第55條，停車可能適用第56條。",
+    "law": "道路交通管理處罰條例第55條（臨時停車）及第56條（停車）；依具體態樣擇一核對",
+    "fineMin": 300,
+    "fineMax": 1200,
+    "fineStatus": "estimated_range",
+    "fineNote": "估計範圍合併了第55條與第56條：臨時停車約NT$300–600，停車約NT$600–1,200；不得視為正式裁罰。",
+    "effectiveDate": null,
+    "ruleVersion": "Taiwan-nationwide-v1",
+    "source": "https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&flno=55",
+    "jurisdiction": "Taiwan"
+  }
 ]
